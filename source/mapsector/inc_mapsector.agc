@@ -1,0 +1,20 @@
+
+//#include "def_mapsector_climatetexture.agc"
+//#include "def_mapsector_climate.agc"
+//#include "def_mapsector_terraintype.agc"
+#include "def_mapsector_data.agc"
+//#include "def_mapsector.agc"
+
+//#include "fnc_mapsector_climate_load.agc"
+//#include "fnc_mapsector_climatetexture_load.agc"
+
+#include "fnc_mapsector_check.agc"
+#include "fnc_mapsector_size.agc"
+#include "fnc_mapsector_terrain_check.agc"
+#include "fnc_mapsector_terrain_heightmap.agc"
+#include "fnc_mapsector_terrain_tiletypes.agc"
+//#include "fnc_mapsector_ground.agc"
+//#include "fnc_mapsector_texture.agc"
+#include "fnc_mapsector_object3d.agc"
+//#include "fnc_mapsector_generate.agc"
+//#include "fnc_mapsector_init.agc"
