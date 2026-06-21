@@ -19,22 +19,8 @@ endtype
 type TMapSectorTextureData
 	
 	ImageID as integer
-	TileCount as integer
 	PositionX as integer
 	PositionY as integer
-	
-endtype
-
-//----------------------------------------------------------------------
-// border
-//----------------------------------------------------------------------
-
-type TMapSectorBorder
-	
-	North as integer
-	East as integer
-	South as integer
-	West as integer
 	
 endtype
 
@@ -49,6 +35,8 @@ type TMapSectorCliffData
 	// full, southwest, northwest ..
 	CliffType as integer
 	CliffDirection as integer
+	
+	CliffIndex as integer
 
 	Texture as TMapSectorTextureData
 	
@@ -66,18 +54,45 @@ type TMapSectorTileData
 	TileDirection as integer
 	TileCliff as integer[8]
 	
+	// cliff data
 	Cliff as TMapSectorCliffData[8]
 	
 	// type natural, urban ..
 	// index of grass, earth .. element from ground list
-	GroundElementType as string
+	GroundType as integer
 	GroundElementIndex as integer
 	
 	// > 0 have a border of a heigher ground element
 	// north (z+1), east (x+1) ..
-	GroundElementBorder as TMapSectorBorder
+	GroundBorder as integer[8]
 	
 	Texture as TMapSectorTextureData
+	
+endtype
+
+//----------------------------------------------------------------------
+// data of floor objects
+//----------------------------------------------------------------------
+
+type TFloorObjectData
+	
+	Enabled as integer
+	RefObjectID as integer
+	RefSubObjectsID as integer[-1]
+	FloorObjectType as integer
+	
+endtype
+
+
+//----------------------------------------------------------------------
+// data of ambient objects
+//----------------------------------------------------------------------
+
+type TAmbientObjectData
+	
+	Enabled as integer
+	RefObjectID as integer[-1]
+	AmbientObjectType as integer
 	
 endtype
 
@@ -102,6 +117,9 @@ type TMapSectorTile
 	
 	Data as TMapSectorTileData
 	
+	FloorObject as TFloorObjectData
+	AmbientObject as TAmbientObjectData
+	
 endtype
 
 //----------------------------------------------------------------------
@@ -125,23 +143,9 @@ type TMapSectorEntryPointData
 	
 	Properties as TMapSectorProperties
 	
-	TerrainData as TMapSectorTileData[]
-	TerrainHeight as integer[]
+	TerrainData as TMapSectorTileData[-1]
+	TerrainHeight as integer[-1]
 		
-endtype
-
-//----------------------------------------------------------------------
-// entry point of neighbour maps
-//----------------------------------------------------------------------
-
-type TMapSectorEntryPoint
-	
-	// 4 directions
-	NorthEast as TMapSectorEntryPointData
-	SouthEast as TMapSectorEntryPointData
-	SouthWest as TMapSectorEntryPointData
-	NorthWest as TMapSectorEntryPointData
-	
 endtype
 
 //----------------------------------------------------------------------
@@ -158,7 +162,7 @@ type TMapSectorData
 	
 	// borders if map based on neighbour maps if exists
 	
-	EntryPoint as TMapSectorEntryPoint
+	EntryPoint as TMapSectorEntryPointData[8]
 	
 	// count of tiles in the full map
 
@@ -184,7 +188,6 @@ type TMapSectorData
 	TileHeight as float
 	
 	// world view options
-	
 	// cluster is only visible up to this height
 	
 	ClipHeight as integer
@@ -195,5 +198,17 @@ type TMapSectorData
 	
 	Tile as TMapSectorTile[-1,-1,-1]
 	Cluster as TMapSectorCluster[-1,-1,-1]
+	
+	Source as TFilePath
+	DataSource as TMapSectorDataSource
+	TextureImages as TMapSectorTexture
+	
+	SkyBox as TMapSectorSkyBox
+	Camera as TMapSectorCameraData
+	
+	FloorObjectImages as TFloorObjectImages[-1]
+	FloorObjectTypes as TFloorObjectTypeData[-1]
+	AmbientObjectTypes as TAmbientObjectTypeData[-1]
+	
 	
 endtype

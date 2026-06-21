@@ -1,0 +1,16 @@
+[
+
+	{
+	"Identifier":"groundurbanstreet",
+	"Name":{"DE":"Straße","EN":"street","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Description":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Image":
+		{
+		"Source":{"Path":"/media/gfx/mapsector/ground","File":"street.png"},
+		"TileCountX":16,
+		"TileCountY":16,
+		"Border":0
+		}
+	}
+
+]

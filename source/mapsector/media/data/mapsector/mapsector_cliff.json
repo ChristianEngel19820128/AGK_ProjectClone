@@ -1,0 +1,94 @@
+[
+
+	{
+	"Identifier":"cliff1",
+	"Name":{"DE":"Gras","EN":"grass","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Description":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Image":
+		{
+		"Source":{"Path":"/media/gfx/mapsector/cliff","File":"cliff_1_1.png"},
+		"TileCountX":2,
+		"TileCountY":4,
+		"Border":0
+		}
+	},
+
+	{
+	"Identifier":"cliff2",
+	"Name":{"DE":"Gras","EN":"grass","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Description":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Image":
+		{
+		"Source":{"Path":"/media/gfx/mapsector/cliff","File":"cliff_1_2.png"},
+		"TileCountX":2,
+		"TileCountY":4,
+		"Border":0
+		}
+	},
+
+	{
+	"Identifier":"cliff3",
+	"Name":{"DE":"Gras","EN":"grass","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Description":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Image":
+		{
+		"Source":{"Path":"/media/gfx/mapsector/cliff","File":"cliff_1_3.png"},
+		"TileCountX":2,
+		"TileCountY":4,
+		"Border":0
+		}
+	},
+
+	{
+	"Identifier":"cliff4",
+	"Name":{"DE":"Gras","EN":"grass","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Description":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Image":
+		{
+		"Source":{"Path":"/media/gfx/mapsector/cliff","File":"cliff_1_4.png"},
+		"TileCountX":2,
+		"TileCountY":4,
+		"Border":0
+		}
+	},
+
+	{
+	"Identifier":"cliff5",
+	"Name":{"DE":"Gras","EN":"grass","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Description":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Image":
+		{
+		"Source":{"Path":"/media/gfx/mapsector/cliff","File":"cliff_1_5.png"},
+		"TileCountX":2,
+		"TileCountY":4,
+		"Border":0
+		}
+	},
+
+	{
+	"Identifier":"cliff6",
+	"Name":{"DE":"Gras","EN":"grass","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Description":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Image":
+		{
+		"Source":{"Path":"/media/gfx/mapsector/cliff","File":"cliff_1_6.png"},
+		"TileCountX":2,
+		"TileCountY":4,
+		"Border":0
+		}
+	},
+
+	{
+	"Identifier":"cliff7",
+	"Name":{"DE":"Gras","EN":"grass","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Description":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Image":
+		{
+		"Source":{"Path":"/media/gfx/mapsector/cliff","File":"cliff_1_7.png"},
+		"TileCountX":2,
+		"TileCountY":4,
+		"Border":0
+		}
+	}
+
+]

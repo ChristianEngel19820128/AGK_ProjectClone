@@ -12,6 +12,15 @@
 
 #constant CNone			0
 
+#constant CForward		1
+#constant CBackward		2
+#constant CLeft			3
+#constant CRight		4
+#constant CUp			5
+#constant CDown			6
+#constant CIn			7
+#constant COut			8
+
 #constant CSouthWest	1
 #constant CSouth		2
 #constant CSouthEast	3
@@ -28,3 +37,10 @@
 #constant CCliff		5
 #constant CCliffHalf	6
 #constant CCliffBevel	7
+
+#constant CGroundClip		1
+#constant CGroundNew		2
+#constant CGroundPlaced		3
+#constant CGroundNatural	4
+#constant CGroundUrban		5
+

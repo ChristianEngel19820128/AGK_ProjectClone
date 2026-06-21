@@ -12,8 +12,8 @@ function MapSectorClusterObjectSetDefaultProperties(MultiMeshObject,x as float,y
 		SetObjectCullMode(MultiMeshObject,1)
 		SetObjectLightMode(MultiMeshObject,1)	
 		SetObjectCastShadow(MultiMeshObject,1)
+		SetObjectReceiveShadow(MultiMeshObject,1)
 		SetObjectFogMode(MultiMeshObject,1)
-		
 	endif	
 				
 endfunction
@@ -37,7 +37,7 @@ function MapSectorObjectMeshCreate(Mesh ref as TMesh,Tile ref as TMapSectorTile,
 			// add mesh to object
 			AddObjectMeshFromMemblock(ObjectID,Mesh.MemBlockID)
 		endif
-	
+		
 		MapSectorLastObjectMeshTileGroundDataSet(Tile,ObjectID,ImageID)
 		
 		if Mesh.MemBlockID > 0
@@ -154,21 +154,32 @@ endfunction Found
 // 
 //----------------------------------------------------------------------
 
-function MapSectorTileMeshAdd(Tile ref as TMapSectorTile,MultiMeshObject,mx as float,my as float,mz as float,Size as float,Height as float)
+function MapSectorTileMeshAdd(Tile ref as TMapSectorTile,Texture ref as TMapSectorTextureImageData,MultiMeshObject,MeshData as TMeshData)
 
-	local Mesh as TMesh	
+	local Mesh as TMesh
+	
 	local MeshIndex as integer
+	
 	local ObjectID as integer
 	local ImageID as integer
-	local TextureData as TMeshTexture
+		
+	local AttributesData as TMeshAttributesData
+	local TextureData as TMeshTextureData
+	
+	AttributesData.Normal = 1
+	AttributesData.UV = 1
+	AttributesData.Color = 1
 	
 	ImageID = Tile.Data.Texture.ImageID
-	TextureData.Count = Tile.Data.Texture.TileCount
-	TextureData.Posx = Tile.Data.Texture.PositionX
-	TextureData.Posy = Tile.Data.Texture.PositionY
+
+	TextureData.CountX = Texture.TileCountX
+	TextureData.CountY = Texture.TileCountY
+	
+	TextureData.PosX = Tile.Data.Texture.PositionX
+	TextureData.PosY = Tile.Data.Texture.PositionY
 	
 	// init mesh data
-	MeshMemBlockInit(Mesh,1,1,1,mx,my,mz,Size,Height,TextureData)
+	MeshMemBlockInit(Mesh,AttributesData,MeshData,TextureData)
 	if MapSectorTileTypeMeshAdd(Mesh,Tile) = TRUE
 		MeshMemBlockCreate(Mesh)
 	endif 
@@ -370,23 +381,34 @@ endfunction Found
 // 
 //----------------------------------------------------------------------
 
-function MapSectorCliffMeshAdd(Tile ref as TMapSectorTile,Direction,MultiMeshObject,mx as float,my as float,mz as float,Size as float,Height as float)
+function MapSectorCliffMeshAdd(Tile ref as TMapSectorTile,Direction,Texture ref as TMapSectorTextureImageData,MultiMeshObject,MeshData as TMeshData)
 
-	local Mesh as TMesh	
+	local Mesh as TMesh
+	
 	local MeshIndex as integer
+	
 	local ObjectID as integer
 	local ImageID as integer
-	local TextureData as TMeshTexture
 	
+	local AttributesData as TMeshAttributesData
+	local TextureData as TMeshTextureData
+		
 	local Found as integer
 	
+	AttributesData.Normal = 1
+	AttributesData.UV = 1
+	AttributesData.Color = 1
+	
 	ImageID = Tile.Data.Cliff[Direction].Texture.ImageID
-	TextureData.Count = Tile.Data.Cliff[Direction].Texture.TileCount
-	TextureData.Posx = Tile.Data.Cliff[Direction].Texture.PositionX
-	TextureData.Posy = Tile.Data.Cliff[Direction].Texture.PositionY
+	
+	TextureData.CountX = Texture.TileCountX
+	TextureData.CountY = Texture.TileCountY
+	
+	TextureData.PosX = Tile.Data.Cliff[Direction].Texture.PositionX
+	TextureData.PosY = Tile.Data.Cliff[Direction].Texture.PositionY
 	
 	// init mesh data
-	MeshMemBlockInit(Mesh,1,1,1,mx,my,mz,Size,Height,TextureData)
+	MeshMemBlockInit(Mesh,AttributesData,MeshData,TextureData)
 	
 	Found = 0
 	select Direction
@@ -428,14 +450,12 @@ function MapSectorClusterObjectCreate(MapSector ref as TMapSectorData,cx,cy,cz)
 	local ty as integer
 	local tz as integer
 	
-	local mx as float
-	local my as float
-	local mz as float
+	local MeshData as TMeshData
+	local ImageData as TMapSectorTextureImageData
+	local CliffIndex as integer
 	
-	local Size as integer
-	local Height as integer
 	local MultiMeshObject as integer
-		
+	
 	MultiMeshObject = 0
 	
 	// set all meshes for cluster
@@ -450,31 +470,48 @@ function MapSectorClusterObjectCreate(MapSector ref as TMapSectorData,cx,cy,cz)
 		tz = cz * MapSector.ClusterSizeZ + ctz
 
 		// size of each tile
-		Size = MapSector.TileSize
-		Height = MapSector.TileHeight
+		MeshData.Size = MapSector.TileSize
+		MeshData.Height = MapSector.TileHeight
 		
 		// set position of mesh in the object
-		mx = ctx * Size
-		my = 0
-		mz = ctz * Size
+		MeshData.x = ctx * MapSector.TileSize
+		MeshData.y = 0
+		MeshData.z = ctz * MapSector.TileSize
 		
 		if MapSectorTileIsValid(MapSector,tx,ty,tz) = TRUE
 			
 			// Plane
-			MultiMeshObject = MapSectorTileMeshAdd(MapSector.Tile[tx,ty,tz],MultiMeshObject,mx,my,mz,Size,Height)
+			select MapSector.Tile[tx,ty,tz].Data.GroundType
+				case CGroundClip
+					ImageData = MapSector.TextureImages.GroundNatural[MapSector.Tile[tx,ty,tz].Data.GroundElementIndex].Image
+				endcase
+				case CGroundNatural
+					ImageData = MapSector.TextureImages.GroundNatural[MapSector.Tile[tx,ty,tz].Data.GroundElementIndex].Image
+				endcase
+				case CGroundUrban
+					ImageData = MapSector.TextureImages.GroundUrban[MapSector.Tile[tx,ty,tz].Data.GroundElementIndex].Image
+				endcase
+			endselect
+			
+			MultiMeshObject = MapSectorTileMeshAdd(MapSector.Tile[tx,ty,tz],ImageData,MultiMeshObject,MeshData)
 			
 			// Cliff
 			if MapSector.Tile[tx,ty,tz].Data.Cliff[CSouth].Enabled = TRUE
-				MultiMeshObject = MapSectorCliffMeshAdd(MapSector.Tile[tx,ty,tz],CSouth,MultiMeshObject,mx,my,mz,Size,Height)
+				CliffIndex = MapSector.Tile[tx,ty,tz].Data.Cliff[CSouth].CliffIndex
+				ImageData = MapSector.TextureImages.Cliff[CliffIndex].Image
+				MultiMeshObject = MapSectorCliffMeshAdd(MapSector.Tile[tx,ty,tz],CSouth,ImageData,MultiMeshObject,MeshData)
 			endif
 			if MapSector.Tile[tx,ty,tz].Data.Cliff[CNorth].Enabled = TRUE
-				MultiMeshObject = MapSectorCliffMeshAdd(MapSector.Tile[tx,ty,tz],CNorth,MultiMeshObject,mx,my,mz,Size,Height)
+				ImageData = MapSector.TextureImages.Cliff[MapSector.Tile[tx,ty,tz].Data.Cliff[CNorth].CliffIndex].Image
+				MultiMeshObject = MapSectorCliffMeshAdd(MapSector.Tile[tx,ty,tz],CNorth,ImageData,MultiMeshObject,MeshData)
 			endif
 			if MapSector.Tile[tx,ty,tz].Data.Cliff[CWest].Enabled = TRUE
-				MultiMeshObject = MapSectorCliffMeshAdd(MapSector.Tile[tx,ty,tz],CWest,MultiMeshObject,mx,my,mz,Size,Height)
+				ImageData = MapSector.TextureImages.Cliff[MapSector.Tile[tx,ty,tz].Data.Cliff[CWest].CliffIndex].Image
+				MultiMeshObject = MapSectorCliffMeshAdd(MapSector.Tile[tx,ty,tz],CWest,ImageData,MultiMeshObject,MeshData)
 			endif
 			if MapSector.Tile[tx,ty,tz].Data.Cliff[CEast].Enabled = TRUE
-				MultiMeshObject = MapSectorCliffMeshAdd(MapSector.Tile[tx,ty,tz],CEast,MultiMeshObject,mx,my,mz,Size,Height)
+				ImageData = MapSector.TextureImages.Cliff[MapSector.Tile[tx,ty,tz].Data.Cliff[CEast].CliffIndex].Image
+				MultiMeshObject = MapSectorCliffMeshAdd(MapSector.Tile[tx,ty,tz],CEast,ImageData,MultiMeshObject,MeshData)
 			endif
 			
 		endif
@@ -482,9 +519,9 @@ function MapSectorClusterObjectCreate(MapSector ref as TMapSectorData,cx,cy,cz)
 	next ctz
 	next ctx
 	
-	x = cx * MapSector.ClusterSizeX * Size
-	y = cy * Height
-	z = cz * MapSector.ClusterSizeZ * Size
+	x = cx * MapSector.ClusterSizeX * MapSector.TileSize
+	y = cy * MapSector.TileHeight
+	z = cz * MapSector.ClusterSizeZ * MapSector.TileSize
 	
 	// set default properties for the cluster object
 	MapSectorClusterObjectSetDefaultProperties(MultiMeshObject,x,y,z)

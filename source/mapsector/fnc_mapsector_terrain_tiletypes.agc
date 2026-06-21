@@ -788,4 +788,8 @@ function MapSectorTerrainTypeGenerate(MapSector Ref As TMapSectorData)
 	// cliff type
 	MapSectorTerrainCliffTypeSetAll(MapSector)
 	
+	// cliff map borders
+	MapSectorTerrainMapBorderCliffTypeSetAll(MapSector)
+	
 endfunction
+

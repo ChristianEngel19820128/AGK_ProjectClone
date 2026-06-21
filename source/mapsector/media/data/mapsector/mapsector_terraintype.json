@@ -1,0 +1,219 @@
+[
+
+	{
+	"Identifier":"village",
+	"Name":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Description":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Altitude":0,
+	"Urbanisation":0,
+	"Vegetation":0,
+	"Plant":["",..],
+	"Wildlife":0,
+	"Animals":["",..]
+	},
+
+	{
+	"Identifier":"city",
+	"Name":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Description":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Altitude":0,
+	"Urbanisation":0,
+	"Vegetation":0,
+	"Plant":["",..],
+	"Wildlife":0,
+	"Animals":["",..]
+	},
+
+	{
+	"Identifier":"plain",
+	"Name":{"DE":"Ebene","EN":"plain","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Description":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Altitude":0,
+	"Urbanisation":0,
+	"Vegetation":0,
+	"Plant":["",..],
+	"Wildlife":0,
+	"Animals":["",..]
+	},
+
+	{
+	"Identifier":"mixedforest",
+	"Name":{"DE":"Wald","EN":"forest","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Description":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Altitude":0,
+	"Urbanisation":0,
+	"Vegetation":0,
+	"Plant":["",..],
+	"Wildlife":0,
+	"Animals":["",..]
+	},
+
+	{
+	"Identifier":"coniferousforest",
+	"Name":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Description":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Altitude":0,
+	"Urbanisation":0,
+	"Vegetation":0,
+	"Plant":["",..],
+	"Wildlife":0,
+	"Animals":["",..]
+	},
+
+	{
+	"Identifier":"deciduousforest",
+	"Name":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Description":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Altitude":0,
+	"Urbanisation":0,
+	"Vegetation":0,
+	"Plant":["",..],
+	"Wildlife":0,
+	"Animals":["",..]
+	},
+
+	{
+	"Identifier":"shrubbery",
+	"Name":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Description":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Altitude":0,
+	"Urbanisation":0,
+	"Vegetation":0,
+	"Plant":["",..],
+	"Wildlife":0,
+	"Animals":["",..]
+	},
+
+	{
+	"Identifier":"lea",
+	"Name":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Description":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Altitude":0,
+	"Urbanisation":0,
+	"Vegetation":0,
+	"Plant":["",..],
+	"Wildlife":0,
+	"Animals":["",..]
+	},
+
+	{
+	"Identifier":"swamp",
+	"Name":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Description":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Altitude":0,
+	"Urbanisation":0,
+	"Vegetation":0,
+	"Plant":["",..],
+	"Wildlife":0,
+	"Animals":["",..]
+	},
+
+	{
+	"Identifier":"lake",
+	"Name":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Description":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Altitude":0,
+	"Urbanisation":0,
+	"Vegetation":0,
+	"Plant":["",..],
+	"Wildlife":0,
+	"Animals":["",..]
+	},
+
+	{
+	"Identifier":"river",
+	"Name":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Description":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Altitude":0,
+	"Urbanisation":0,
+	"Vegetation":0,
+	"Plant":["",..],
+	"Wildlife":0,
+	"Animals":["",..]
+	},
+
+	{
+	"Identifier":"sea",
+	"Name":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Description":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Altitude":0,
+	"Urbanisation":0,
+	"Vegetation":0,
+	"Plant":["",..],
+	"Wildlife":0,
+	"Animals":["",..]
+	},
+
+	{
+	"Identifier":"island",
+	"Name":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Description":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Altitude":0,
+	"Urbanisation":0,
+	"Vegetation":0,
+	"Plant":["",..],
+	"Wildlife":0,
+	"Animals":["",..]
+	},
+
+	{
+	"Identifier":"hill",
+	"Name":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Description":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Altitude":0,
+	"Urbanisation":0,
+	"Vegetation":0,
+	"Plant":["",..],
+	"Wildlife":0,
+	"Animals":["",..]
+	},
+
+	{
+	"Identifier":"mountain",
+	"Name":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Description":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Altitude":0,
+	"Urbanisation":0,
+	"Vegetation":0,
+	"Plant":["",..],
+	"Wildlife":0,
+	"Animals":["",..]
+	},
+
+	{
+	"Identifier":"mountainlake",
+	"Name":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Description":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Altitude":0,
+	"Urbanisation":0,
+	"Vegetation":0,
+	"Plant":["",..],
+	"Wildlife":0,
+	"Animals":["",..]
+	},
+
+	{
+	"Identifier":"mountainriver",
+	"Name":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Description":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Altitude":0,
+	"Urbanisation":0,
+	"Vegetation":0,
+	"Plant":["",..],
+	"Wildlife":0,
+	"Animals":["",..]
+	},
+
+	{
+	"Identifier":"dessert",
+	"Name":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Description":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Altitude":0,
+	"Urbanisation":0,
+	"Vegetation":0,
+	"Plant":["",..],
+	"Wildlife":0,
+	"Animals":["",..]
+	},
+
+]

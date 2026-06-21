@@ -1,0 +1,21 @@
+[
+
+	{
+	"Identifier":"altitude",
+	"Name":{"DE":"Höhe","EN":"altitude","FR":"hauteur","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Description":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""}
+	},
+
+	{
+	"Identifier":"temperature",
+	"Name":{"DE":"Temperatur","EN":"temperature","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Description":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""}
+	}
+
+	{
+	"Identifier":"urbanisation",
+	"Name":{"DE":"Urbanisation","EN":"urbanisation","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
+	"Description":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""}
+	}
+
+]

@@ -112,7 +112,7 @@ Function MapSectorTerrainMountainSet(MapSector ref As TMapSectorData,LineMode,Po
 
 		// randomize max radius for mountain per height level
 		// the heigher so smaller the level radius
-		rh = Random(1,1+Floor(Radius/k))
+		rh = Random(1,1+Floor(Radius/Ceil(k*0.5)))
 
 		// only if radius > 1
 		If rh > 1
@@ -353,21 +353,3 @@ Function MapSectorHighestTileCalculate(MapSector Ref As TMapSectorData)
 
 EndFunction
 
-//----------------------------------------------------------------------
-// generate MapTerrain
-//----------------------------------------------------------------------
-
-function MapSectorTerrainGenerate(MapSector ref as TMapSectorData)
-	
-	local i as integer
-	
-	MapSectorTerrainFlatGenerate(MapSector)
-	//MapSectorTerrainNoiseGenerate(MapSector,2)
-	for i = 0 to Floor(MapSector.Properties.Altitude/10)
-		MapSectorTerrainMountainGenerate(MapSector)
-	next i
-	MapSectorTerrainAltitudeStraighten(MapSector,TRUE)
-	//MapSectorTerrainAltitudeStraighten(MapSector,FALSE)
-	//MapSectorTerrainAltitudeCleanUp(MapSector,TRUE)
-	
-endfunction

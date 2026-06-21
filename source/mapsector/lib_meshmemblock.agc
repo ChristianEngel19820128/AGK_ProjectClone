@@ -37,8 +37,8 @@ function TestPlane(ObjectID,ImageID)
 	for z = 0 to 3
 		
 		TextureData.Count = 4 // = 4x4 possible example textures for this mesh
-		TextureData.Posx = Random(0,3) // pos starts at 0
-		TextureData.Posy = Random(0,3) // pos ends at count - 1
+		TextureData.PosX = Random(0,3) // pos starts at 0
+		TextureData.PosY = Random(0,3) // pos ends at count - 1
 		
 		MeshMemBlockInit(Mesh,1,1,1,x*5,0,z*5,5,5,TextureData)
 		
@@ -159,6 +159,11 @@ type TMeshAttributes
 	Offset as integer
 	Size as integer
 	
+	DataType as integer
+	ComponentCount as integer
+	NormalizeFlag as integer
+	StringLength as integer
+	
 endtype
 
 //----------------------------------------------------------------------
@@ -188,30 +193,34 @@ endtype
 //
 //----------------------------------------------------------------------
 
-type TMeshTexture
+type TMeshAttributesData
 	
-	Count as integer
-	Size as float
-	Posx as integer
-	Posy as integer
-	
-endtype
-	
-//----------------------------------------------------------------------
-// mesh basic type
-//----------------------------------------------------------------------
-
-type TMesh
-	
-	// de-/activate
 	Normal as integer
 	UV as integer
 	Color as integer
 	
-	// memblock object
-	MemBlockID as integer
-	MemBlockSize as integer
-	MemBlockHeader as TMeshMemblockHeader
+endtype
+
+//----------------------------------------------------------------------
+//
+//----------------------------------------------------------------------
+
+type TMeshTextureData
+	
+	CountX as integer
+	CountY as integer
+	SizeX as float
+	SizeY as float
+	PosX as integer
+	PosY as integer
+	
+endtype
+
+//----------------------------------------------------------------------
+// mesh basic type
+//----------------------------------------------------------------------
+
+type TMeshData
 	
 	x as float
 	y as float
@@ -220,10 +229,32 @@ type TMesh
 	Size as float
 	Height as float
 	
+endtype
+
+//----------------------------------------------------------------------
+// mesh basic type
+//----------------------------------------------------------------------
+
+type TMesh
+	
+	// memblock object
+	MemBlockID as integer
+	MemBlockSize as integer
+	MemBlockHeader as TMeshMemblockHeader
+	
+	// de-/activate
+	Attributes as TMeshAttributesData
+	
+	// position and size
+	Data as TMeshData
+	
+	// vertex data
 	Vertices as TMeshVertex[-1]
+	OriginalVertices as TMeshVertex[-1]
 	Indices as integer[-1]
 	
-	Texture as TMeshTexture
+	// texture image data
+	TextureData as TMeshTextureData
 	
 endtype
 
@@ -231,10 +262,7 @@ endtype
 //
 //----------------------------------------------------------------------
 
-function MeshMemBlockInit(Mesh ref as TMesh,Normal,UV,Color,x as float,y as float,z as float,Size as float,Height as float,Texture as TMeshTexture)
-	
-	local i as integer
-	local k as integer
+function MeshMemBlockInit(Mesh ref as TMesh,Attributes as TMeshAttributesData,Data as TMeshData,TextureData as TMeshTextureData)
 	
 	if Mesh.MemBlockID > 0
 		DeleteMemblock(Mesh.MemBlockID)
@@ -243,28 +271,24 @@ function MeshMemBlockInit(Mesh ref as TMesh,Normal,UV,Color,x as float,y as floa
 	
 	Mesh.MemBlockSize = 0
 	
-	Mesh.Normal = Normal
-	Mesh.UV = UV
-	Mesh.Color = Color
+	Mesh.Attributes = Attributes
+
+	Mesh.Data = Data
 	
-	Mesh.x = x
-	Mesh.y = y
-	Mesh.z = z
-	
-	Mesh.Size = Size
-	Mesh.Height = Height
-	if Height > Size then Mesh.Height = Size
+	if Data.Height > Data.Size then Mesh.Data.Height = Data.Size
 	
 	Mesh.Vertices.Length = -1
 	Mesh.Indices.Length = -1
 	
-	Mesh.Texture = Texture
-	if Mesh.Texture.Count = 0 then Mesh.Texture.Count = 1
-	Mesh.Texture.Size = 1.0 / Mesh.Texture.Count
-	if Mesh.Texture.Count = 1
-		Mesh.Texture.Posx = 0
-		Mesh.Texture.Posy = 0
-	endif
+	Mesh.TextureData = TextureData
+
+	if Mesh.TextureData.CountX = 0 then Mesh.TextureData.CountX = 1
+	Mesh.TextureData.SizeX = 1.0 / Mesh.TextureData.CountX
+	if Mesh.TextureData.CountX = 1 then Mesh.TextureData.PosX = 0
+	
+	if Mesh.TextureData.CountY = 0 then Mesh.TextureData.CountY = 1
+	Mesh.TextureData.SizeY = 1.0 / Mesh.TextureData.CountY
+	if Mesh.TextureData.CountY = 1 then Mesh.TextureData.PosY = 0
 	
 endfunction
 
@@ -297,9 +321,9 @@ function MeshMemBlockCalcMemBlockSize(Mesh ref as TMesh)
 	Mesh.MemBlockHeader.Indices = Mesh.Indices.Length + 1
 	
 	Mesh.MemBlockHeader.Attributes = 1
-	if Mesh.Normal = 1 then inc Mesh.MemBlockHeader.Attributes
-	if Mesh.UV = 1 then inc Mesh.MemBlockHeader.Attributes
-	if Mesh.Color = 1 then inc Mesh.MemBlockHeader.Attributes
+	if Mesh.Attributes.Normal = 1 then inc Mesh.MemBlockHeader.Attributes
+	if Mesh.Attributes.UV = 1 then inc Mesh.MemBlockHeader.Attributes
+	if Mesh.Attributes.Color = 1 then inc Mesh.MemBlockHeader.Attributes
 	
 	Mesh.MemBlockHeader.Position.Size = 4 + 12
 	Mesh.MemBlockHeader.Position.Offset = 24
@@ -307,19 +331,19 @@ function MeshMemBlockCalcMemBlockSize(Mesh ref as TMesh)
 	Offset = Mesh.MemBlockHeader.Position.Offset + Mesh.MemBlockHeader.Position.Size
 	
 	Mesh.MemBlockHeader.Normal.Size = 4 + 8
-	Mesh.MemBlockHeader.Normal.Offset = Mesh.Normal * Offset
-	Mesh.MemBlockHeader.VertexSize = Mesh.MemBlockHeader.VertexSize + Mesh.Normal * 3 * 4
-	Offset = Offset + Mesh.Normal * Mesh.MemBlockHeader.Normal.Size
+	Mesh.MemBlockHeader.Normal.Offset = Mesh.Attributes.Normal * Offset
+	Mesh.MemBlockHeader.VertexSize = Mesh.MemBlockHeader.VertexSize + Mesh.Attributes.Normal * 3 * 4
+	Offset = Offset + Mesh.Attributes.Normal * Mesh.MemBlockHeader.Normal.Size
 
 	Mesh.MemBlockHeader.UV.Size = 4 + 4
-	Mesh.MemBlockHeader.UV.Offset = Mesh.UV * Offset
-	Mesh.MemBlockHeader.VertexSize = Mesh.MemBlockHeader.VertexSize + Mesh.UV * 2 * 4
-	Offset = Offset + Mesh.UV * Mesh.MemBlockHeader.UV.Size
+	Mesh.MemBlockHeader.UV.Offset = Mesh.Attributes.UV * Offset
+	Mesh.MemBlockHeader.VertexSize = Mesh.MemBlockHeader.VertexSize + Mesh.Attributes.UV * 2 * 4
+	Offset = Offset + Mesh.Attributes.UV * Mesh.MemBlockHeader.UV.Size
 	
 	Mesh.MemBlockHeader.Color.Size = 4 + 8
-	Mesh.MemBlockHeader.Color.Offset = Mesh.Color * Offset
-	Mesh.MemBlockHeader.VertexSize = Mesh.MemBlockHeader.VertexSize + Mesh.Color * 4
-	Offset = Offset + Mesh.Color * Mesh.MemBlockHeader.Color.Size
+	Mesh.MemBlockHeader.Color.Offset = Mesh.Attributes.Color * Offset
+	Mesh.MemBlockHeader.VertexSize = Mesh.MemBlockHeader.VertexSize + Mesh.Attributes.Color * 4
+	Offset = Offset + Mesh.Attributes.Color * Mesh.MemBlockHeader.Color.Size
 	
 	Mesh.MemBlockHeader.VertexOffset = Offset
 	
@@ -359,7 +383,7 @@ function MeshMemBlockWriteNormal(Mesh ref as TMesh)
 
 	if Mesh.MemBlockID > 0
 		if Mesh.MemBlockSize > 0
-			if Mesh.Normal > 0
+			if Mesh.Attributes.Normal > 0
 				
 				SetMemblockByte(Mesh.MemBlockID,Mesh.MemBlockHeader.Normal.Offset+0,0)
 				SetMemblockByte(Mesh.MemBlockID,Mesh.MemBlockHeader.Normal.Offset+1,3)
@@ -382,7 +406,7 @@ function MeshMemBlockWriteUV(Mesh ref as TMesh)
 
 	if Mesh.MemBlockID > 0
 		if Mesh.MemBlockSize > 0
-			if Mesh.UV > 0
+			if Mesh.Attributes.UV > 0
 				
 				SetMemblockByte(Mesh.MemBlockID,Mesh.MemBlockHeader.UV.Offset+0,0)
 				SetMemblockByte(Mesh.MemBlockID,Mesh.MemBlockHeader.UV.Offset+1,2)
@@ -405,7 +429,7 @@ function MeshMemBlockWriteColor(Mesh ref as TMesh)
 
 	if Mesh.MemBlockID > 0
 		if Mesh.MemBlockSize > 0
-			if Mesh.Color > 0
+			if Mesh.Attributes.Color > 0
 				
 				SetMemblockByte(Mesh.MemBlockID,Mesh.MemBlockHeader.Color.Offset+0,1)
 				SetMemblockByte(Mesh.MemBlockID,Mesh.MemBlockHeader.Color.Offset+1,4)
@@ -495,20 +519,20 @@ function MeshMemBlockWriteVertices(Mesh ref as TMesh)
 				
 				SetMeshMemblockVertexPosition(ID,i,vx,vy,vz)
 								
-				if Mesh.Normal = 1
+				if Mesh.Attributes.Normal = 1
 					nx = Mesh.Vertices[i].Normal.x
 					ny = Mesh.Vertices[i].Normal.y
 					nz = Mesh.Vertices[i].Normal.z
 					SetMeshMemblockVertexNormal(ID,i,nx,ny,nz)
 				endif
 				
-				if Mesh.UV = 1
+				if Mesh.Attributes.UV = 1
 					u = Mesh.Vertices[i].UV.u
 					v = Mesh.Vertices[i].UV.v
 					SetMeshMemblockVertexUV(ID,i,u,v)
 				endif
 					
-				if Mesh.Color = 1
+				if Mesh.Attributes.Color = 1
 					r = Mesh.Vertices[i].Color.Red
 					g = Mesh.Vertices[i].Color.Green
 					b = Mesh.Vertices[i].Color.Blue
@@ -566,12 +590,12 @@ function MeshMemBlockVertexSouthWest(Mesh ref as TMesh,Height as float,Normal as
 	local Vertex as TMeshVertex
 	local obj as integer
 
-	Vertex.Position.x = Mesh.x
+	Vertex.Position.x = Mesh.Data.x
 	Vertex.Position.y = Height
-	Vertex.Position.z = Mesh.z
+	Vertex.Position.z = Mesh.Data.z
 	
-	Vertex.UV.u = Mesh.Texture.Size * Mesh.Texture.Posx
-	Vertex.UV.v = Mesh.Texture.Size * Mesh.Texture.Posy + Mesh.Texture.Size
+	Vertex.UV.u = Mesh.TextureData.SizeX * Mesh.TextureData.PosX
+	Vertex.UV.v = Mesh.TextureData.SizeY * Mesh.TextureData.PosY + Mesh.TextureData.SizeY
 	
 	Vertex.Normal.x = Normal.x
 	Vertex.Normal.y = Normal.y
@@ -595,12 +619,12 @@ function MeshMemBlockVertexSouthEast(Mesh ref as TMesh,Height as float,Normal as
 	
 	local Vertex as TMeshVertex
 
-	Vertex.Position.x = Mesh.x + Mesh.Size
+	Vertex.Position.x = Mesh.Data.x + Mesh.Data.Size
 	Vertex.Position.y = Height
-	Vertex.Position.z = Mesh.z
+	Vertex.Position.z = Mesh.Data.z
 	
-	Vertex.UV.u = Mesh.Texture.Size * Mesh.Texture.Posx + Mesh.Texture.Size
-	Vertex.UV.v = Mesh.Texture.Size * Mesh.Texture.Posy + Mesh.Texture.Size
+	Vertex.UV.u = Mesh.TextureData.SizeX * Mesh.TextureData.PosX + Mesh.TextureData.SizeX
+	Vertex.UV.v = Mesh.TextureData.SizeY * Mesh.TextureData.PosY + Mesh.TextureData.SizeY
 	
 	Vertex.Normal.x = Normal.x
 	Vertex.Normal.y = Normal.y
@@ -624,12 +648,12 @@ function MeshMemBlockVertexNorthEast(Mesh ref as TMesh,Height as float,Normal as
 	
 	local Vertex as TMeshVertex
 
-	Vertex.Position.x = Mesh.x + Mesh.Size
+	Vertex.Position.x = Mesh.Data.x + Mesh.Data.Size
 	Vertex.Position.y = Height
-	Vertex.Position.z = Mesh.z + Mesh.Size
+	Vertex.Position.z = Mesh.Data.z + Mesh.Data.Size
 	
-	Vertex.UV.u = Mesh.Texture.Size * Mesh.Texture.Posx + Mesh.Texture.Size
-	Vertex.UV.v = Mesh.Texture.Size * Mesh.Texture.Posy
+	Vertex.UV.u = Mesh.TextureData.SizeX * Mesh.TextureData.PosX + Mesh.TextureData.SizeX
+	Vertex.UV.v = Mesh.TextureData.SizeY * Mesh.TextureData.PosY
 	
 	Vertex.Normal.x = Normal.x
 	Vertex.Normal.y = Normal.y
@@ -653,12 +677,12 @@ function MeshMemBlockVertexNorthWest(Mesh ref as TMesh,Height as float,Normal as
 	
 	local Vertex as TMeshVertex
 
-	Vertex.Position.x = Mesh.x
+	Vertex.Position.x = Mesh.Data.x
 	Vertex.Position.y = Height
-	Vertex.Position.z = Mesh.z + Mesh.Size
+	Vertex.Position.z = Mesh.Data.z + Mesh.Data.Size
 	
-	Vertex.UV.u = Mesh.Texture.Size * Mesh.Texture.Posx
-	Vertex.UV.v = Mesh.Texture.Size * Mesh.Texture.Posy
+	Vertex.UV.u = Mesh.TextureData.SizeX * Mesh.TextureData.PosX
+	Vertex.UV.v = Mesh.TextureData.SizeY * Mesh.TextureData.PosY
 	
 	Vertex.Normal.x = Normal.x
 	Vertex.Normal.y = Normal.y
@@ -687,14 +711,14 @@ function MeshMemBlockPlane(Mesh ref as TMesh)
 	Normal.z = 0
 	
 	// triangle 1
-	MeshMemBlockVertexSouthWest(Mesh,Mesh.Height,Normal)
-	MeshMemBlockVertexSouthEast(Mesh,Mesh.Height,Normal)
-	MeshMemBlockVertexNorthWest(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexSouthWest(Mesh,Mesh.Data.Height,Normal)
+	MeshMemBlockVertexSouthEast(Mesh,Mesh.Data.Height,Normal)
+	MeshMemBlockVertexNorthWest(Mesh,Mesh.Data.Height,Normal)
 	
 	// triangle 2
-	MeshMemBlockVertexNorthEast(Mesh,Mesh.Height,Normal)
-	MeshMemBlockVertexNorthWest(Mesh,Mesh.Height,Normal)
-	MeshMemBlockVertexSouthEast(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexNorthEast(Mesh,Mesh.Data.Height,Normal)
+	MeshMemBlockVertexNorthWest(Mesh,Mesh.Data.Height,Normal)
+	MeshMemBlockVertexSouthEast(Mesh,Mesh.Data.Height,Normal)
 	
 endfunction
 
@@ -708,16 +732,16 @@ function MeshMemBlockRampSouth(Mesh ref as TMesh)
 
 	Normal.x = 0
 	Normal.y = 1.0
-	Normal.z = -1.0 * Mesh.Height / Mesh.Size
+	Normal.z = -1.0 * Mesh.Data.Height / Mesh.Data.Size
 	
 	// triangle 1
 	MeshMemBlockVertexSouthWest(Mesh,0,Normal)
 	MeshMemBlockVertexSouthEast(Mesh,0,Normal)
-	MeshMemBlockVertexNorthWest(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexNorthWest(Mesh,Mesh.Data.Height,Normal)
 	
 	// triangle 2
-	MeshMemBlockVertexNorthEast(Mesh,Mesh.Height,Normal)
-	MeshMemBlockVertexNorthWest(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexNorthEast(Mesh,Mesh.Data.Height,Normal)
+	MeshMemBlockVertexNorthWest(Mesh,Mesh.Data.Height,Normal)
 	MeshMemBlockVertexSouthEast(Mesh,0,Normal)
 	
 endfunction
@@ -732,17 +756,17 @@ function MeshMemBlockRampNorth(Mesh ref as TMesh)
 
 	Normal.x = 0
 	Normal.y = 1.0
-	Normal.z = 1.0 * Mesh.Height / Mesh.Size
+	Normal.z = 1.0 * Mesh.Data.Height / Mesh.Data.Size
 	
 	// triangle 1
-	MeshMemBlockVertexSouthWest(Mesh,Mesh.Height,Normal)
-	MeshMemBlockVertexSouthEast(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexSouthWest(Mesh,Mesh.Data.Height,Normal)
+	MeshMemBlockVertexSouthEast(Mesh,Mesh.Data.Height,Normal)
 	MeshMemBlockVertexNorthWest(Mesh,0,Normal)
 	
 	// triangle 2
 	MeshMemBlockVertexNorthEast(Mesh,0,Normal)
 	MeshMemBlockVertexNorthWest(Mesh,0,Normal)
-	MeshMemBlockVertexSouthEast(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexSouthEast(Mesh,Mesh.Data.Height,Normal)
 	
 endfunction
 
@@ -754,18 +778,18 @@ function MeshMemBlockRampEast(Mesh ref as TMesh)
 
 	local Normal as TMeshVertexNormal
 
-	Normal.x = 1.0 * Mesh.Height / Mesh.Size
+	Normal.x = 1.0 * Mesh.Data.Height / Mesh.Data.Size
 	Normal.y = 1.0
 	Normal.z = 0
 	
 	// triangle 1
-	MeshMemBlockVertexSouthWest(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexSouthWest(Mesh,Mesh.Data.Height,Normal)
 	MeshMemBlockVertexSouthEast(Mesh,0,Normal)
-	MeshMemBlockVertexNorthWest(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexNorthWest(Mesh,Mesh.Data.Height,Normal)
 	
 	// triangle 2
 	MeshMemBlockVertexNorthEast(Mesh,0,Normal)
-	MeshMemBlockVertexNorthWest(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexNorthWest(Mesh,Mesh.Data.Height,Normal)
 	MeshMemBlockVertexSouthEast(Mesh,0,Normal)
 	
 endfunction
@@ -778,19 +802,19 @@ function MeshMemBlockRampWest(Mesh ref as TMesh)
 
 	local Normal as TMeshVertexNormal
 
-	Normal.x = -1.0 * Mesh.Height / Mesh.Size
+	Normal.x = -1.0 * Mesh.Data.Height / Mesh.Data.Size
 	Normal.y = 1.0
 	Normal.z = 0
 	
 	// triangle 1
 	MeshMemBlockVertexSouthWest(Mesh,0,Normal)
-	MeshMemBlockVertexSouthEast(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexSouthEast(Mesh,Mesh.Data.Height,Normal)
 	MeshMemBlockVertexNorthWest(Mesh,0,Normal)
 	
 	// triangle 2
-	MeshMemBlockVertexNorthEast(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexNorthEast(Mesh,Mesh.Data.Height,Normal)
 	MeshMemBlockVertexNorthWest(Mesh,0,Normal)
-	MeshMemBlockVertexSouthEast(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexSouthEast(Mesh,Mesh.Data.Height,Normal)
 	
 endfunction
 
@@ -804,20 +828,20 @@ function MeshMemBlockCornerSouthWest(Mesh ref as TMesh)
 
 	Normal.x = 0
 	Normal.y = 1.0
-	Normal.z = -1.0 * Mesh.Height / Mesh.Size
+	Normal.z = -1.0 * Mesh.Data.Height / Mesh.Data.Size
 	
 	// triangle 1
 	MeshMemBlockVertexSouthWest(Mesh,0,Normal)
 	MeshMemBlockVertexSouthEast(Mesh,0,Normal)
-	MeshMemBlockVertexNorthEast(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexNorthEast(Mesh,Mesh.Data.Height,Normal)
 	
-	Normal.x = -1.0 * Mesh.Height / Mesh.Size
+	Normal.x = -1.0 * Mesh.Data.Height / Mesh.Data.Size
 	Normal.y = 1.0
 	Normal.z = 0
 	
 	// triangle 2
 	MeshMemBlockVertexSouthWest(Mesh,0,Normal)
-	MeshMemBlockVertexNorthEast(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexNorthEast(Mesh,Mesh.Data.Height,Normal)
 	MeshMemBlockVertexNorthWest(Mesh,0,Normal)
 	
 endfunction
@@ -832,20 +856,20 @@ function MeshMemBlockCornerSouthEast(Mesh ref as TMesh)
 
 	Normal.x = 0
 	Normal.y = 1.0
-	Normal.z = -1.0 * Mesh.Height / Mesh.Size
+	Normal.z = -1.0 * Mesh.Data.Height / Mesh.Data.Size
 	
 	// triangle 1
 	MeshMemBlockVertexSouthWest(Mesh,0,Normal)
 	MeshMemBlockVertexSouthEast(Mesh,0,Normal)
-	MeshMemBlockVertexNorthWest(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexNorthWest(Mesh,Mesh.Data.Height,Normal)
 	
-	Normal.x = 1.0 * Mesh.Height / Mesh.Size
+	Normal.x = 1.0 * Mesh.Data.Height / Mesh.Data.Size
 	Normal.y = 1.0
 	Normal.z = 0
 	
 	// triangle 2
 	MeshMemBlockVertexNorthEast(Mesh,0,Normal)
-	MeshMemBlockVertexNorthWest(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexNorthWest(Mesh,Mesh.Data.Height,Normal)
 	MeshMemBlockVertexSouthEast(Mesh,0,Normal)
 	
 endfunction
@@ -858,23 +882,23 @@ function MeshMemBlockCornerNorthWest(Mesh ref as TMesh)
 
 	local Normal as TMeshVertexNormal
 
-	Normal.x = -1.0 * Mesh.Height / Mesh.Size
+	Normal.x = -1.0 * Mesh.Data.Height / Mesh.Data.Size
 	Normal.y = 1.0
 	Normal.z = 0
 	
 	// triangle 1
 	MeshMemBlockVertexSouthWest(Mesh,0,Normal)
-	MeshMemBlockVertexSouthEast(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexSouthEast(Mesh,Mesh.Data.Height,Normal)
 	MeshMemBlockVertexNorthWest(Mesh,0,Normal)
 	
 	Normal.x = 0
 	Normal.y = 1.0
-	Normal.z = 1.0 * Mesh.Height / Mesh.Size
+	Normal.z = 1.0 * Mesh.Data.Height / Mesh.Data.Size
 	
 	// triangle 2
 	MeshMemBlockVertexNorthEast(Mesh,0,Normal)
 	MeshMemBlockVertexNorthWest(Mesh,0,Normal)
-	MeshMemBlockVertexSouthEast(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexSouthEast(Mesh,Mesh.Data.Height,Normal)
 	
 endfunction
 
@@ -886,21 +910,21 @@ function MeshMemBlockCornerNorthEast(Mesh ref as TMesh)
 
 	local Normal as TMeshVertexNormal
 
-	Normal.x = 1.0 * Mesh.Height / Mesh.Size
+	Normal.x = 1.0 * Mesh.Data.Height / Mesh.Data.Size
 	Normal.y = 1.0
 	Normal.z = 0
 	
 	// triangle 1
-	MeshMemBlockVertexSouthWest(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexSouthWest(Mesh,Mesh.Data.Height,Normal)
 	MeshMemBlockVertexSouthEast(Mesh,0,Normal)
 	MeshMemBlockVertexNorthEast(Mesh,0,Normal)
 	
 	Normal.x = 0
 	Normal.y = 1.0
-	Normal.z = 1.0 * Mesh.Height / Mesh.Size
+	Normal.z = 1.0 * Mesh.Data.Height / Mesh.Data.Size
 	
 	// triangle 2
-	MeshMemBlockVertexSouthWest(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexSouthWest(Mesh,Mesh.Data.Height,Normal)
 	MeshMemBlockVertexNorthEast(Mesh,0,Normal)
 	MeshMemBlockVertexNorthWest(Mesh,0,Normal)
 	
@@ -914,23 +938,23 @@ function MeshMemBlockNotchSouthWest(Mesh ref as TMesh)
 
 	local Normal as TMeshVertexNormal
 
-	Normal.x = -1.0 * Mesh.Height / Mesh.Size
+	Normal.x = -1.0 * Mesh.Data.Height / Mesh.Data.Size
 	Normal.y = 1.0
 	Normal.z = 0
 	
 	// triangle 1
 	MeshMemBlockVertexSouthWest(Mesh,0,Normal)
-	MeshMemBlockVertexSouthEast(Mesh,Mesh.Height,Normal)
-	MeshMemBlockVertexNorthEast(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexSouthEast(Mesh,Mesh.Data.Height,Normal)
+	MeshMemBlockVertexNorthEast(Mesh,Mesh.Data.Height,Normal)
 	
 	Normal.x = 0
 	Normal.y = 1.0
-	Normal.z = -1.0 * Mesh.Height / Mesh.Size
+	Normal.z = -1.0 * Mesh.Data.Height / Mesh.Data.Size
 	
 	// triangle 2
 	MeshMemBlockVertexSouthWest(Mesh,0,Normal)
-	MeshMemBlockVertexNorthEast(Mesh,Mesh.Height,Normal)
-	MeshMemBlockVertexNorthWest(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexNorthEast(Mesh,Mesh.Data.Height,Normal)
+	MeshMemBlockVertexNorthWest(Mesh,Mesh.Data.Height,Normal)
 	
 endfunction
 
@@ -942,22 +966,22 @@ function MeshMemBlockNotchSouthEast(Mesh ref as TMesh)
 
 	local Normal as TMeshVertexNormal
 
-	Normal.x = 1.0 * Mesh.Height / Mesh.Size
+	Normal.x = 1.0 * Mesh.Data.Height / Mesh.Data.Size
 	Normal.y = 1.0
 	Normal.z = 0
 	
 	// triangle 1
-	MeshMemBlockVertexSouthWest(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexSouthWest(Mesh,Mesh.Data.Height,Normal)
 	MeshMemBlockVertexSouthEast(Mesh,0,Normal)
-	MeshMemBlockVertexNorthWest(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexNorthWest(Mesh,Mesh.Data.Height,Normal)
 	
 	Normal.x = 0
 	Normal.y = 1.0
-	Normal.z = -1.0 * Mesh.Height / Mesh.Size
+	Normal.z = -1.0 * Mesh.Data.Height / Mesh.Data.Size
 	
 	// triangle 2
-	MeshMemBlockVertexNorthEast(Mesh,Mesh.Height,Normal)
-	MeshMemBlockVertexNorthWest(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexNorthEast(Mesh,Mesh.Data.Height,Normal)
+	MeshMemBlockVertexNorthWest(Mesh,Mesh.Data.Height,Normal)
 	MeshMemBlockVertexSouthEast(Mesh,0,Normal)
 	
 endfunction
@@ -972,21 +996,21 @@ function MeshMemBlockNotchNorthWest(Mesh ref as TMesh)
 
 	Normal.x = 0
 	Normal.y = 1.0
-	Normal.z = 1.0 * Mesh.Height / Mesh.Size
+	Normal.z = 1.0 * Mesh.Data.Height / Mesh.Data.Size
 	
 	// triangle 1
-	MeshMemBlockVertexSouthWest(Mesh,Mesh.Height,Normal)
-	MeshMemBlockVertexSouthEast(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexSouthWest(Mesh,Mesh.Data.Height,Normal)
+	MeshMemBlockVertexSouthEast(Mesh,Mesh.Data.Height,Normal)
 	MeshMemBlockVertexNorthWest(Mesh,0,Normal)
 	
-	Normal.x = -1.0 * Mesh.Height / Mesh.Size
+	Normal.x = -1.0 * Mesh.Data.Height / Mesh.Data.Size
 	Normal.y = 1.0
 	Normal.z = 0
 	
 	// triangle 2
-	MeshMemBlockVertexNorthEast(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexNorthEast(Mesh,Mesh.Data.Height,Normal)
 	MeshMemBlockVertexNorthWest(Mesh,0,Normal)
-	MeshMemBlockVertexSouthEast(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexSouthEast(Mesh,Mesh.Data.Height,Normal)
 	
 endfunction
 
@@ -1000,21 +1024,21 @@ function MeshMemBlockNotchNorthEast(Mesh ref as TMesh)
 
 	Normal.x = 0
 	Normal.y = 1.0
-	Normal.z = 1.0 * Mesh.Height / Mesh.Size
+	Normal.z = 1.0 * Mesh.Data.Height / Mesh.Data.Size
 	
 	// triangle 1
-	MeshMemBlockVertexSouthWest(Mesh,Mesh.Height,Normal)
-	MeshMemBlockVertexSouthEast(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexSouthWest(Mesh,Mesh.Data.Height,Normal)
+	MeshMemBlockVertexSouthEast(Mesh,Mesh.Data.Height,Normal)
 	MeshMemBlockVertexNorthEast(Mesh,0,Normal)
 	
-	Normal.x = 1.0 * Mesh.Height / Mesh.Size
+	Normal.x = 1.0 * Mesh.Data.Height / Mesh.Data.Size
 	Normal.y = 1.0
 	Normal.z = 0
 	
 	// triangle 2
-	MeshMemBlockVertexSouthWest(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexSouthWest(Mesh,Mesh.Data.Height,Normal)
 	MeshMemBlockVertexNorthEast(Mesh,0,Normal)
-	MeshMemBlockVertexNorthWest(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexNorthWest(Mesh,Mesh.Data.Height,Normal)
 	
 endfunction
 
@@ -1026,16 +1050,16 @@ function MeshMemBlockVertexSouthVerticalSouthWest(Mesh ref as TMesh,Height as fl
 	
 	local Vertex as TMeshVertex
 
-	Vertex.Position.x = Mesh.x
+	Vertex.Position.x = Mesh.Data.x
 	Vertex.Position.y = Height
-	Vertex.Position.z = Mesh.z
+	Vertex.Position.z = Mesh.Data.z
 	
 	if Height = 0
-		Vertex.UV.u = Mesh.Texture.Size * Mesh.Texture.Posx
-		Vertex.UV.v = Mesh.Texture.Size * Mesh.Texture.Posy + Mesh.Texture.Size
+		Vertex.UV.u = Mesh.TextureData.SizeX * Mesh.TextureData.PosX
+		Vertex.UV.v = Mesh.TextureData.SizeY * Mesh.TextureData.PosY + Mesh.TextureData.SizeY
 	else
-		Vertex.UV.u = Mesh.Texture.Size * Mesh.Texture.Posx
-		Vertex.UV.v = Mesh.Texture.Size * Mesh.Texture.Posy
+		Vertex.UV.u = Mesh.TextureData.SizeX * Mesh.TextureData.PosX
+		Vertex.UV.v = Mesh.TextureData.SizeY * Mesh.TextureData.PosY
 	endif
 	
 	Vertex.Normal.x = Normal.x
@@ -1060,16 +1084,16 @@ function MeshMemBlockVertexSouthVerticalSouthEast(Mesh ref as TMesh,Height as fl
 	
 	local Vertex as TMeshVertex
 
-	Vertex.Position.x = Mesh.x + Mesh.Size
+	Vertex.Position.x = Mesh.Data.x + Mesh.Data.Size
 	Vertex.Position.y = Height
-	Vertex.Position.z = Mesh.z
+	Vertex.Position.z = Mesh.Data.z
 
 	if Height = 0
-		Vertex.UV.u = Mesh.Texture.Size * Mesh.Texture.Posx + Mesh.Texture.Size
-		Vertex.UV.v = Mesh.Texture.Size * Mesh.Texture.Posy + Mesh.Texture.Size
+		Vertex.UV.u = Mesh.TextureData.SizeX * Mesh.TextureData.PosX + Mesh.TextureData.SizeX
+		Vertex.UV.v = Mesh.TextureData.SizeY * Mesh.TextureData.PosY + Mesh.TextureData.SizeY
 	else
-		Vertex.UV.u = Mesh.Texture.Size * Mesh.Texture.Posx + Mesh.Texture.Size
-		Vertex.UV.v = Mesh.Texture.Size * Mesh.Texture.Posy
+		Vertex.UV.u = Mesh.TextureData.SizeX * Mesh.TextureData.PosX + Mesh.TextureData.SizeX
+		Vertex.UV.v = Mesh.TextureData.SizeY * Mesh.TextureData.PosY
 	endif
 		
 	Vertex.Normal.x = Normal.x
@@ -1101,7 +1125,7 @@ function MeshMemBlockCliffSouth(Mesh ref as TMesh)
 	// triangle 1
 	MeshMemBlockVertexSouthVerticalSouthWest(Mesh,0,Normal)
 	MeshMemBlockVertexSouthVerticalSouthEast(Mesh,0,Normal)
-	MeshMemBlockVertexSouthVerticalSouthWest(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexSouthVerticalSouthWest(Mesh,Mesh.Data.Height,Normal)
 	
 	Normal.x = 0
 	Normal.y = 0
@@ -1109,8 +1133,8 @@ function MeshMemBlockCliffSouth(Mesh ref as TMesh)
 	
 	// triangle 2
 	MeshMemBlockVertexSouthVerticalSouthEast(Mesh,0,Normal)
-	MeshMemBlockVertexSouthVerticalSouthEast(Mesh,Mesh.Height,Normal)
-	MeshMemBlockVertexSouthVerticalSouthWest(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexSouthVerticalSouthEast(Mesh,Mesh.Data.Height,Normal)
+	MeshMemBlockVertexSouthVerticalSouthWest(Mesh,Mesh.Data.Height,Normal)
 	
 endfunction
 
@@ -1128,8 +1152,8 @@ function MeshMemBlockCliffHalfSouthToWest(Mesh ref as TMesh)
 	
 	// triangle 1		
 	MeshMemBlockVertexSouthVerticalSouthWest(Mesh,0,Normal)
-	MeshMemBlockVertexSouthVerticalSouthEast(Mesh,Mesh.Height,Normal)
-	MeshMemBlockVertexSouthVerticalSouthWest(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexSouthVerticalSouthEast(Mesh,Mesh.Data.Height,Normal)
+	MeshMemBlockVertexSouthVerticalSouthWest(Mesh,Mesh.Data.Height,Normal)
 	
 endfunction
 
@@ -1147,8 +1171,8 @@ function MeshMemBlockCliffHalfSouthToEast(Mesh ref as TMesh)
 	
 	// triangle 1	
 	MeshMemBlockVertexSouthVerticalSouthEast(Mesh,0,Normal)
-	MeshMemBlockVertexSouthVerticalSouthEast(Mesh,Mesh.Height,Normal)
-	MeshMemBlockVertexSouthVerticalSouthWest(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexSouthVerticalSouthEast(Mesh,Mesh.Data.Height,Normal)
+	MeshMemBlockVertexSouthVerticalSouthWest(Mesh,Mesh.Data.Height,Normal)
 	
 endfunction
 
@@ -1167,7 +1191,7 @@ function MeshMemBlockBevelSouthToWest(Mesh ref as TMesh)
 	// triangle 1
 	MeshMemBlockVertexSouthVerticalSouthWest(Mesh,0,Normal)
 	MeshMemBlockVertexSouthVerticalSouthEast(Mesh,0,Normal)
-	MeshMemBlockVertexSouthVerticalSouthEast(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexSouthVerticalSouthEast(Mesh,Mesh.Data.Height,Normal)
 	
 endfunction
 
@@ -1186,7 +1210,7 @@ function MeshMemBlockBevelSouthToEast(Mesh ref as TMesh)
 	// triangle 1
 	MeshMemBlockVertexSouthVerticalSouthWest(Mesh,0,Normal)
 	MeshMemBlockVertexSouthVerticalSouthEast(Mesh,0,Normal)
-	MeshMemBlockVertexSouthVerticalSouthWest(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexSouthVerticalSouthWest(Mesh,Mesh.Data.Height,Normal)
 	
 endfunction
 
@@ -1198,16 +1222,16 @@ function MeshMemBlockVertexNorthVerticalNorthWest(Mesh ref as TMesh,Height as fl
 	
 	local Vertex as TMeshVertex
 
-	Vertex.Position.x = Mesh.x
+	Vertex.Position.x = Mesh.Data.x
 	Vertex.Position.y = Height
-	Vertex.Position.z = Mesh.z + Mesh.Size
+	Vertex.Position.z = Mesh.Data.z + Mesh.Data.Size
 	
 	if Height = 0
-		Vertex.UV.u = Mesh.Texture.Size * Mesh.Texture.Posx + Mesh.Texture.Size
-		Vertex.UV.v = Mesh.Texture.Size * Mesh.Texture.Posy + Mesh.Texture.Size
+		Vertex.UV.u = Mesh.TextureData.SizeX * Mesh.TextureData.PosX + Mesh.TextureData.SizeX
+		Vertex.UV.v = Mesh.TextureData.SizeY * Mesh.TextureData.PosY + Mesh.TextureData.SizeY
 	else
-		Vertex.UV.u = Mesh.Texture.Size * Mesh.Texture.Posx + Mesh.Texture.Size
-		Vertex.UV.v = Mesh.Texture.Size * Mesh.Texture.Posy
+		Vertex.UV.u = Mesh.TextureData.SizeX * Mesh.TextureData.PosX + Mesh.TextureData.SizeX
+		Vertex.UV.v = Mesh.TextureData.SizeY * Mesh.TextureData.PosY
 	endif
 	
 	Vertex.Normal.x = Normal.x
@@ -1232,16 +1256,16 @@ function MeshMemBlockVertexNorthVerticalNorthEast(Mesh ref as TMesh,Height as fl
 	
 	local Vertex as TMeshVertex
 
-	Vertex.Position.x = Mesh.x + Mesh.Size
+	Vertex.Position.x = Mesh.Data.x + Mesh.Data.Size
 	Vertex.Position.y = Height
-	Vertex.Position.z = Mesh.z + Mesh.Size
+	Vertex.Position.z = Mesh.Data.z + Mesh.Data.Size
 
 	if Height = 0
-		Vertex.UV.u = Mesh.Texture.Size * Mesh.Texture.Posx
-		Vertex.UV.v = Mesh.Texture.Size * Mesh.Texture.Posy + Mesh.Texture.Size
+		Vertex.UV.u = Mesh.TextureData.SizeX * Mesh.TextureData.PosX
+		Vertex.UV.v = Mesh.TextureData.SizeY * Mesh.TextureData.PosY + Mesh.TextureData.SizeY
 	else
-		Vertex.UV.u = Mesh.Texture.Size * Mesh.Texture.Posx
-		Vertex.UV.v = Mesh.Texture.Size * Mesh.Texture.Posy
+		Vertex.UV.u = Mesh.TextureData.SizeX * Mesh.TextureData.PosX
+		Vertex.UV.v = Mesh.TextureData.SizeY * Mesh.TextureData.PosY
 	endif
 		
 	Vertex.Normal.x = Normal.x
@@ -1273,7 +1297,7 @@ function MeshMemBlockCliffNorth(Mesh ref as TMesh)
 	// triangle 1
 	MeshMemBlockVertexNorthVerticalNorthEast(Mesh,0,Normal)	
 	MeshMemBlockVertexNorthVerticalNorthWest(Mesh,0,Normal)
-	MeshMemBlockVertexNorthVerticalNorthEast(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexNorthVerticalNorthEast(Mesh,Mesh.Data.Height,Normal)
 	
 	Normal.x = 0
 	Normal.y = 0
@@ -1281,8 +1305,8 @@ function MeshMemBlockCliffNorth(Mesh ref as TMesh)
 	
 	// triangle 2
 	MeshMemBlockVertexNorthVerticalNorthWest(Mesh,0,Normal)
-	MeshMemBlockVertexNorthVerticalNorthWest(Mesh,Mesh.Height,Normal)
-	MeshMemBlockVertexNorthVerticalNorthEast(Mesh,Mesh.Height,Normal)	
+	MeshMemBlockVertexNorthVerticalNorthWest(Mesh,Mesh.Data.Height,Normal)
+	MeshMemBlockVertexNorthVerticalNorthEast(Mesh,Mesh.Data.Height,Normal)	
 	
 endfunction
 
@@ -1300,8 +1324,8 @@ function MeshMemBlockCliffHalfNorthToWest(Mesh ref as TMesh)
 	
 	// triangle 1
 	MeshMemBlockVertexNorthVerticalNorthWest(Mesh,0,Normal)
-	MeshMemBlockVertexNorthVerticalNorthWest(Mesh,Mesh.Height,Normal)
-	MeshMemBlockVertexNorthVerticalNorthEast(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexNorthVerticalNorthWest(Mesh,Mesh.Data.Height,Normal)
+	MeshMemBlockVertexNorthVerticalNorthEast(Mesh,Mesh.Data.Height,Normal)
 	
 endfunction
 
@@ -1319,8 +1343,8 @@ function MeshMemBlockCliffHalfNorthToEast(Mesh ref as TMesh)
 	
 	// triangle 1
 	MeshMemBlockVertexNorthVerticalNorthEast(Mesh,0,Normal)
-	MeshMemBlockVertexNorthVerticalNorthWest(Mesh,Mesh.Height,Normal)
-	MeshMemBlockVertexNorthVerticalNorthEast(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexNorthVerticalNorthWest(Mesh,Mesh.Data.Height,Normal)
+	MeshMemBlockVertexNorthVerticalNorthEast(Mesh,Mesh.Data.Height,Normal)
 	
 endfunction
 
@@ -1339,7 +1363,7 @@ function MeshMemBlockBevelNorthToWest(Mesh ref as TMesh)
 	// triangle 1
 	MeshMemBlockVertexNorthVerticalNorthEast(Mesh,0,Normal)
 	MeshMemBlockVertexNorthVerticalNorthWest(Mesh,0,Normal)
-	MeshMemBlockVertexNorthVerticalNorthEast(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexNorthVerticalNorthEast(Mesh,Mesh.Data.Height,Normal)
 	
 endfunction
 
@@ -1357,7 +1381,7 @@ function MeshMemBlockBevelNorthToEast(Mesh ref as TMesh)
 	
 	// triangle 1	
 	MeshMemBlockVertexNorthVerticalNorthWest(Mesh,0,Normal)
-	MeshMemBlockVertexNorthVerticalNorthWest(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexNorthVerticalNorthWest(Mesh,Mesh.Data.Height,Normal)
 	MeshMemBlockVertexNorthVerticalNorthEast(Mesh,0,Normal)
 	
 endfunction
@@ -1370,16 +1394,16 @@ function MeshMemBlockVertexEastVerticalSouthEast(Mesh ref as TMesh,Height as flo
 	
 	local Vertex as TMeshVertex
 
-	Vertex.Position.x = Mesh.x + Mesh.Size
+	Vertex.Position.x = Mesh.Data.x + Mesh.Data.Size
 	Vertex.Position.y = Height
-	Vertex.Position.z = Mesh.z
+	Vertex.Position.z = Mesh.Data.z
 	
 	if Height = 0
-		Vertex.UV.u = Mesh.Texture.Size * Mesh.Texture.Posx
-		Vertex.UV.v = Mesh.Texture.Size * Mesh.Texture.Posy + Mesh.Texture.Size
+		Vertex.UV.u = Mesh.TextureData.SizeX * Mesh.TextureData.PosX
+		Vertex.UV.v = Mesh.TextureData.SizeY * Mesh.TextureData.PosY + Mesh.TextureData.SizeY
 	else
-		Vertex.UV.u = Mesh.Texture.Size * Mesh.Texture.Posx
-		Vertex.UV.v = Mesh.Texture.Size * Mesh.Texture.Posy
+		Vertex.UV.u = Mesh.TextureData.SizeX * Mesh.TextureData.PosX
+		Vertex.UV.v = Mesh.TextureData.SizeY * Mesh.TextureData.PosY
 	endif
 	
 	Vertex.Normal.x = Normal.x
@@ -1404,16 +1428,16 @@ function MeshMemBlockVertexEastVerticalNorthEast(Mesh ref as TMesh,Height as flo
 	
 	local Vertex as TMeshVertex
 
-	Vertex.Position.x = Mesh.x + Mesh.Size
+	Vertex.Position.x = Mesh.Data.x + Mesh.Data.Size
 	Vertex.Position.y = Height
-	Vertex.Position.z = Mesh.z + Mesh.Size
+	Vertex.Position.z = Mesh.Data.z + Mesh.Data.Size
 
 	if Height = 0
-		Vertex.UV.u = Mesh.Texture.Size * Mesh.Texture.Posx + Mesh.Texture.Size
-		Vertex.UV.v = Mesh.Texture.Size * Mesh.Texture.Posy + Mesh.Texture.Size
+		Vertex.UV.u = Mesh.TextureData.SizeX * Mesh.TextureData.PosX + Mesh.TextureData.SizeX
+		Vertex.UV.v = Mesh.TextureData.SizeY * Mesh.TextureData.PosY + Mesh.TextureData.SizeY
 	else
-		Vertex.UV.u = Mesh.Texture.Size * Mesh.Texture.Posx + Mesh.Texture.Size
-		Vertex.UV.v = Mesh.Texture.Size * Mesh.Texture.Posy
+		Vertex.UV.u = Mesh.TextureData.SizeX * Mesh.TextureData.PosX + Mesh.TextureData.SizeX
+		Vertex.UV.v = Mesh.TextureData.SizeY * Mesh.TextureData.PosY
 	endif
 		
 	Vertex.Normal.x = Normal.x
@@ -1445,7 +1469,7 @@ function MeshMemBlockCliffEast(Mesh ref as TMesh)
 	// triangle 1
 	MeshMemBlockVertexEastVerticalSouthEast(Mesh,0,Normal)	
 	MeshMemBlockVertexEastVerticalNorthEast(Mesh,0,Normal)
-	MeshMemBlockVertexEastVerticalSouthEast(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexEastVerticalSouthEast(Mesh,Mesh.Data.Height,Normal)
 	
 	Normal.x = 1.0
 	Normal.y = 0
@@ -1453,8 +1477,8 @@ function MeshMemBlockCliffEast(Mesh ref as TMesh)
 	
 	// triangle 2
 	MeshMemBlockVertexEastVerticalNorthEast(Mesh,0,Normal)
-	MeshMemBlockVertexEastVerticalNorthEast(Mesh,Mesh.Height,Normal)
-	MeshMemBlockVertexEastVerticalSouthEast(Mesh,Mesh.Height,Normal)	
+	MeshMemBlockVertexEastVerticalNorthEast(Mesh,Mesh.Data.Height,Normal)
+	MeshMemBlockVertexEastVerticalSouthEast(Mesh,Mesh.Data.Height,Normal)	
 	
 endfunction
 
@@ -1471,9 +1495,9 @@ function MeshMemBlockCliffHalfEastToNorth(Mesh ref as TMesh)
 	Normal.z = 0
 	
 	// triangle 1
-	MeshMemBlockVertexEastVerticalSouthEast(Mesh,0,Normal)	
-	MeshMemBlockVertexEastVerticalNorthEast(Mesh,Mesh.Height,Normal)
-	MeshMemBlockVertexEastVerticalSouthEast(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexEastVerticalNorthEast(Mesh,0,Normal)	
+	MeshMemBlockVertexEastVerticalNorthEast(Mesh,Mesh.Data.Height,Normal)
+	MeshMemBlockVertexEastVerticalSouthEast(Mesh,Mesh.Data.Height,Normal)
 	
 endfunction
 
@@ -1490,9 +1514,9 @@ function MeshMemBlockCliffHalfEastToSouth(Mesh ref as TMesh)
 	Normal.z = 0
 	
 	// triangle 1
-	MeshMemBlockVertexEastVerticalNorthEast(Mesh,0,Normal)	
-	MeshMemBlockVertexEastVerticalNorthEast(Mesh,Mesh.Height,Normal)
-	MeshMemBlockVertexEastVerticalSouthEast(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexEastVerticalSouthEast(Mesh,0,Normal)	
+	MeshMemBlockVertexEastVerticalNorthEast(Mesh,Mesh.Data.Height,Normal)
+	MeshMemBlockVertexEastVerticalSouthEast(Mesh,Mesh.Data.Height,Normal)
 	
 endfunction
 
@@ -1511,7 +1535,7 @@ function MeshMemBlockBevelEastToNorth(Mesh ref as TMesh)
 	// triangle 1
 	MeshMemBlockVertexEastVerticalSouthEast(Mesh,0,Normal)	
 	MeshMemBlockVertexEastVerticalNorthEast(Mesh,0,Normal)
-	MeshMemBlockVertexEastVerticalSouthEast(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexEastVerticalSouthEast(Mesh,Mesh.Data.Height,Normal)
 	
 endfunction
 
@@ -1529,7 +1553,7 @@ function MeshMemBlockBevelEastToSouth(Mesh ref as TMesh)
 	
 	// triangle 1	
 	MeshMemBlockVertexEastVerticalNorthEast(Mesh,0,Normal)
-	MeshMemBlockVertexEastVerticalNorthEast(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexEastVerticalNorthEast(Mesh,Mesh.Data.Height,Normal)
 	MeshMemBlockVertexEastVerticalSouthEast(Mesh,0,Normal)
 	
 endfunction
@@ -1542,16 +1566,16 @@ function MeshMemBlockVertexWestVerticalSouthWest(Mesh ref as TMesh,Height as flo
 	
 	local Vertex as TMeshVertex
 
-	Vertex.Position.x = Mesh.x
+	Vertex.Position.x = Mesh.Data.x
 	Vertex.Position.y = Height
-	Vertex.Position.z = Mesh.z
+	Vertex.Position.z = Mesh.Data.z
 	
 	if Height = 0
-		Vertex.UV.u = Mesh.Texture.Size * Mesh.Texture.Posx + Mesh.Texture.Size
-		Vertex.UV.v = Mesh.Texture.Size * Mesh.Texture.Posy + Mesh.Texture.Size
+		Vertex.UV.u = Mesh.TextureData.SizeX * Mesh.TextureData.PosX + Mesh.TextureData.SizeX
+		Vertex.UV.v = Mesh.TextureData.SizeY * Mesh.TextureData.PosY + Mesh.TextureData.SizeY
 	else
-		Vertex.UV.u = Mesh.Texture.Size * Mesh.Texture.Posx + Mesh.Texture.Size
-		Vertex.UV.v = Mesh.Texture.Size * Mesh.Texture.Posy
+		Vertex.UV.u = Mesh.TextureData.SizeX * Mesh.TextureData.PosX + Mesh.TextureData.SizeX
+		Vertex.UV.v = Mesh.TextureData.SizeY * Mesh.TextureData.PosY
 	endif
 	
 	Vertex.Normal.x = Normal.x
@@ -1576,16 +1600,16 @@ function MeshMemBlockVertexWestVerticalNorthWest(Mesh ref as TMesh,Height as flo
 	
 	local Vertex as TMeshVertex
 
-	Vertex.Position.x = Mesh.x
+	Vertex.Position.x = Mesh.Data.x
 	Vertex.Position.y = Height
-	Vertex.Position.z = Mesh.z + Mesh.Size
+	Vertex.Position.z = Mesh.Data.z + Mesh.Data.Size
 
 	if Height = 0
-		Vertex.UV.u = Mesh.Texture.Size * Mesh.Texture.Posx
-		Vertex.UV.v = Mesh.Texture.Size * Mesh.Texture.Posy + Mesh.Texture.Size
+		Vertex.UV.u = Mesh.TextureData.SizeX * Mesh.TextureData.PosX
+		Vertex.UV.v = Mesh.TextureData.SizeY * Mesh.TextureData.PosY + Mesh.TextureData.SizeY
 	else
-		Vertex.UV.u = Mesh.Texture.Size * Mesh.Texture.Posx
-		Vertex.UV.v = Mesh.Texture.Size * Mesh.Texture.Posy
+		Vertex.UV.u = Mesh.TextureData.SizeX * Mesh.TextureData.PosX
+		Vertex.UV.v = Mesh.TextureData.SizeY * Mesh.TextureData.PosY
 	endif
 		
 	Vertex.Normal.x = Normal.x
@@ -1617,7 +1641,7 @@ function MeshMemBlockCliffWest(Mesh ref as TMesh)
 	// triangle 1
 	MeshMemBlockVertexWestVerticalNorthWest(Mesh,0,Normal)
 	MeshMemBlockVertexWestVerticalSouthWest(Mesh,0,Normal)	
-	MeshMemBlockVertexWestVerticalNorthWest(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexWestVerticalNorthWest(Mesh,Mesh.Data.Height,Normal)
 	
 	Normal.x = -1.0
 	Normal.y = 0
@@ -1625,8 +1649,8 @@ function MeshMemBlockCliffWest(Mesh ref as TMesh)
 	
 	// triangle 2
 	MeshMemBlockVertexWestVerticalSouthWest(Mesh,0,Normal)
-	MeshMemBlockVertexWestVerticalSouthWest(Mesh,Mesh.Height,Normal)
-	MeshMemBlockVertexWestVerticalNorthWest(Mesh,Mesh.Height,Normal)	
+	MeshMemBlockVertexWestVerticalSouthWest(Mesh,Mesh.Data.Height,Normal)
+	MeshMemBlockVertexWestVerticalNorthWest(Mesh,Mesh.Data.Height,Normal)	
 	
 endfunction
 
@@ -1644,8 +1668,8 @@ function MeshMemBlockCliffHalfWestToSouth(Mesh ref as TMesh)
 	
 	// triangle 1
 	MeshMemBlockVertexWestVerticalSouthWest(Mesh,0,Normal)
-	MeshMemBlockVertexWestVerticalSouthWest(Mesh,Mesh.Height,Normal)	
-	MeshMemBlockVertexWestVerticalNorthWest(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexWestVerticalSouthWest(Mesh,Mesh.Data.Height,Normal)	
+	MeshMemBlockVertexWestVerticalNorthWest(Mesh,Mesh.Data.Height,Normal)
 	
 endfunction
 
@@ -1663,8 +1687,8 @@ function MeshMemBlockCliffHalfWestToNorth(Mesh ref as TMesh)
 	
 	// triangle 1
 	MeshMemBlockVertexWestVerticalNorthWest(Mesh,0,Normal)
-	MeshMemBlockVertexWestVerticalSouthWest(Mesh,Mesh.Height,Normal)	
-	MeshMemBlockVertexWestVerticalNorthWest(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexWestVerticalSouthWest(Mesh,Mesh.Data.Height,Normal)	
+	MeshMemBlockVertexWestVerticalNorthWest(Mesh,Mesh.Data.Height,Normal)
 	
 endfunction
 
@@ -1683,7 +1707,7 @@ function MeshMemBlockBevelWestToSouth(Mesh ref as TMesh)
 	// triangle 1
 	MeshMemBlockVertexWestVerticalNorthWest(Mesh,0,Normal)
 	MeshMemBlockVertexWestVerticalSouthWest(Mesh,0,Normal)	
-	MeshMemBlockVertexWestVerticalNorthWest(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexWestVerticalNorthWest(Mesh,Mesh.Data.Height,Normal)
 	
 endfunction
 
@@ -1701,18 +1725,334 @@ function MeshMemBlockBevelWestToNorth(Mesh ref as TMesh)
 	
 	// triangle 1	
 	MeshMemBlockVertexWestVerticalSouthWest(Mesh,0,Normal)
-	MeshMemBlockVertexWestVerticalSouthWest(Mesh,Mesh.Height,Normal)
+	MeshMemBlockVertexWestVerticalSouthWest(Mesh,Mesh.Data.Height,Normal)
 	MeshMemBlockVertexWestVerticalNorthWest(Mesh,0,Normal)
 	
 endfunction
 
+//----------------------------------------------------------------------
+// 
+//----------------------------------------------------------------------
 
+function MeshMemBlockGetFromMeshObject(Mesh ref as TMesh,ObjectID as integer,MeshID as integer)
+	
+	Mesh.MemBlockID = CreateMemblockFromObjectMesh(ObjectID,MeshID)
+	
+	if Mesh.MemBlockID > 0
+		Mesh.MemBlockSize = GetMemblockSize(Mesh.MemBlockID)
+		MeshMemBlockReadHeader(Mesh)
+		MeshMemBlockReadData(Mesh)
+	endif
+	
+endfunction
 
+//----------------------------------------------------------------------
+// 
+//----------------------------------------------------------------------
 
+function MeshMemBlockReadHeader(Mesh ref as TMesh)
+	
+	if Mesh.MemBlockID > 0
+		if Mesh.MemBlockSize > 0
+			Mesh.MemBlockHeader.Vertices     = GetMemblockInt(Mesh.MemBlockID,0)
+			Mesh.MemBlockHeader.Indices      = GetMemblockInt(Mesh.MemBlockID,4)
+			Mesh.MemBlockHeader.Attributes   = GetMemblockInt(Mesh.MemBlockID,8)
+			Mesh.MemBlockHeader.VertexSize   = GetMemblockInt(Mesh.MemBlockID,12)
+			Mesh.MemBlockHeader.VertexOffset = GetMemblockInt(Mesh.MemBlockID,16)
+			Mesh.MemBlockHeader.IndexOffset  = GetMemblockInt(Mesh.MemBlockID,20)
+			Mesh.MemBlockHeader.IndexSize    = 4
+		endif
+	endif
+	
+endfunction
 
+//----------------------------------------------------------------------
+// 
+//----------------------------------------------------------------------
 
+function MeshMemBlockReadData(Mesh ref as TMesh)
+	
+	if Mesh.MemBlockID > 0
+		if Mesh.MemBlockSize > 0
+			MeshMemBlockReadAttributesData(Mesh)
+			MeshMemBlockReadVertices(Mesh)
+			MeshMemBlockReadIndices(Mesh)
+		endif
+	endif
+endfunction
 
+//----------------------------------------------------------------------
+// 
+//----------------------------------------------------------------------
 
+function MeshMemBlockReadAttributesData(Mesh ref as TMesh)
+	
+	local Offset as integer
+	local DataType as integer
+	local ComponentCount as integer
+	local NormalizeFlag as integer
+	local StringLength as integer
+	local AttributeName as string
+	
+	local i as integer
+	
+	if Mesh.MemBlockID > 0
+		if Mesh.MemBlockSize > 0
+					
+			Offset = 24
+			
+			for i = 0 to Mesh.MemBlockHeader.Attributes -1
+				
+				DataType = GetMemblockByte(Mesh.MemBlockID,Offset+0)
+				ComponentCount = GetMemblockByte(Mesh.MemBlockID,Offset+1)
+				NormalizeFlag = GetMemblockByte(Mesh.MemBlockID,Offset+2)
+				StringLength = GetMemblockByte(Mesh.MemBlockID,Offset+3)
+						
+				AttributeName = GetMemblockString(Mesh.MemBlockID,Offset+4,StringLength)
+				
+				select AttributeName
+					case "position"
+						Mesh.MemBlockHeader.Position.Offset = Offset
+						Mesh.MemBlockHeader.Position.Size = 4 + StringLength
+						Mesh.MemBlockHeader.Position.DataType = DataType
+						Mesh.MemBlockHeader.Position.ComponentCount = ComponentCount
+						Mesh.MemBlockHeader.Position.NormalizeFlag = NormalizeFlag
+						Mesh.MemBlockHeader.Position.StringLength = StringLength
+					endcase
+					case "normal"
+						Mesh.MemBlockHeader.Normal.Offset = Offset
+						Mesh.MemBlockHeader.Normal.Size = 4 + StringLength
+						Mesh.MemBlockHeader.Normal.DataType = DataType
+						Mesh.MemBlockHeader.Normal.ComponentCount = ComponentCount
+						Mesh.MemBlockHeader.Normal.NormalizeFlag = NormalizeFlag
+						Mesh.MemBlockHeader.Normal.StringLength = StringLength
+						Mesh.Attributes.Normal = 1
+					endcase
+					case "uv"
+						Mesh.MemBlockHeader.UV.Offset = Offset
+						Mesh.MemBlockHeader.UV.Size = 4 + StringLength
+						Mesh.MemBlockHeader.UV.DataType = DataType
+						Mesh.MemBlockHeader.UV.ComponentCount = ComponentCount
+						Mesh.MemBlockHeader.UV.NormalizeFlag = NormalizeFlag
+						Mesh.MemBlockHeader.UV.StringLength = StringLength
+						Mesh.Attributes.UV = 1
+					endcase
+					case "color"
+						Mesh.MemBlockHeader.Color.Offset = Offset
+						Mesh.MemBlockHeader.Color.Size = 4 + StringLength
+						Mesh.MemBlockHeader.Color.DataType = DataType
+						Mesh.MemBlockHeader.Color.ComponentCount = ComponentCount
+						Mesh.MemBlockHeader.Color.NormalizeFlag = NormalizeFlag
+						Mesh.MemBlockHeader.Color.StringLength = StringLength
+						Mesh.Attributes.Color = 1
+					endcase
+				endselect
+				
+				
+				Offset = Offset + 4 + StringLength
+				
+			next
+			
+		endif
+	endif
+	
+endfunction
 
+//----------------------------------------------------------------------
+// 
+//----------------------------------------------------------------------
+
+function MeshMemBlockReadVertices(Mesh ref as TMesh)
+	
+	local i as integer
+	local Vertex as TMeshVertex
+	
+	if Mesh.MemBlockID > 0
+		if Mesh.MemBlockSize > 0
+			for i = 0 to Mesh.MemBlockHeader.Vertices - 1
+				
+				Vertex.Position.x = GetMeshMemblockVertexX(Mesh.MemBlockID,i)
+				Vertex.Position.y = GetMeshMemblockVertexY(Mesh.MemBlockID,i)
+				Vertex.Position.z = GetMeshMemblockVertexZ(Mesh.MemBlockID,i)
+				
+				if Mesh.Attributes.Normal = 1
+					Vertex.Normal.x = GetMeshMemblockVertexNormalX(Mesh.MemBlockID,i)
+					Vertex.Normal.y = GetMeshMemblockVertexNormalY(Mesh.MemBlockID,i)
+					Vertex.Normal.z = GetMeshMemblockVertexNormalZ(Mesh.MemBlockID,i)
+				endif
+				
+				if Mesh.Attributes.UV = 1
+					Vertex.UV.u = GetMeshMemblockVertexU(Mesh.MemBlockID,i)
+					Vertex.UV.v = GetMeshMemblockVertexV(Mesh.MemBlockID,i)
+				endif
+				
+				if Mesh.Attributes.Color = 1
+					Vertex.Color.Red = GetMeshMemblockVertexRed(Mesh.MemBlockID,i)
+					Vertex.Color.Green = GetMeshMemblockVertexGreen(Mesh.MemBlockID,i)
+					Vertex.Color.Blue = GetMeshMemblockVertexBlue(Mesh.MemBlockID,i)
+					Vertex.Color.Alpha = GetMeshMemblockVertexAlpha(Mesh.MemBlockID,i)
+				endif
+				
+				Mesh.OriginalVertices.Insert(Vertex)
+				
+			next
+		endif
+	endif
+	
+endfunction
+
+//----------------------------------------------------------------------
+// 
+//----------------------------------------------------------------------
+
+function MeshMemBlockReadIndices(Mesh ref as TMesh)
+	
+	local i as integer
+	local Index as integer
+	
+	if Mesh.MemBlockID > 0
+		if Mesh.MemBlockSize > 0
+			for i = 0 to Mesh.MemBlockHeader.Indices - 1
+				Index = GetMemblockInt(Mesh.MemBlockID,Mesh.MemBlockHeader.IndexOffset+i*Mesh.MemBlockHeader.IndexSize)
+				Mesh.Indices.Insert(Index)
+			next
+		endif
+	endif
+	
+endfunction
+
+//----------------------------------------------------------------------
+// 
+//----------------------------------------------------------------------
+
+function MeshMemBlockSetData(Mesh ref as TMesh,Data as TMeshData,Color as TMeshVertexColor)
+	
+	local i as integer
+	
+	local Vertex as TMeshVertex
+	
+	if Mesh.MemBlockID > 0
+		if Mesh.MemBlockSize > 0
+			
+			Mesh.Data = Data
+			Mesh.Attributes.Color = 1
+						
+			for i = 0 to Mesh.MemBlockHeader.Vertices -1
+				
+				Vertex = Mesh.OriginalVertices[i]
+				
+				Vertex.Position.x = Mesh.Data.x + Mesh.OriginalVertices[i].Position.x
+				Vertex.Position.y = Mesh.Data.y + Mesh.OriginalVertices[i].Position.y
+				Vertex.Position.z = Mesh.Data.z + Mesh.OriginalVertices[i].Position.z
+				
+				Vertex.Color = Color
+				
+				Mesh.Vertices.Insert(Vertex)
+					
+			next i
+			
+			MeshMemBlockCreate(Mesh)
+			
+		endif
+	endif
+	
+endfunction
+
+//----------------------------------------------------------------------
+// 
+//---------------------------------------------------------------------
+
+function MeshMemBlockClear(Mesh ref as TMesh)
+	
+	Mesh.Data.x = 0
+	Mesh.Data.y = 0
+	Mesh.Data.z = 0
+	
+	Mesh.Data.Size = 0	
+	Mesh.Data.Height = 0
+	
+	Mesh.MemBlockSize = 0
+	
+	Mesh.Attributes.Normal = 0
+	Mesh.Attributes.UV = 0
+	Mesh.Attributes.Color = 0
+	
+	Mesh.MemBlockHeader.Attributes = 0
+	
+	Mesh.MemBlockHeader.IndexOffset = 0
+	Mesh.MemBlockHeader.IndexSize = 0
+	Mesh.MemBlockHeader.Indices = 0
+	Mesh.MemBlockHeader.VertexOffset = 0
+	Mesh.MemBlockHeader.VertexSize = 0
+	Mesh.MemBlockHeader.Vertices = 0
+	
+	Mesh.OriginalVertices.Length = -1
+	Mesh.Vertices.Length = -1
+	Mesh.Indices.Length = -1
+	
+	DeleteMemblock(Mesh.MemBlockID)
+	
+endfunction
+
+//----------------------------------------------------------------------
+// 
+//---------------------------------------------------------------------
+
+function MeshMemSaveToFile(FileID as integer,FilePath ref as TFilePath,Mesh ref as TMesh,MeshCount as integer,VertexCount as integer)
+	
+	local s as string
+	local i as integer
+	
+	if FilePathSet(FilePath) = TRUE
+		
+		if FileID = 0
+			FileID = OpenToWrite(FilePath.File,0)
+		else
+			OpenToWrite(FileID,FilePath.File,1)
+		endif
+		
+		s = "o Mesh_" + str(MeshCount)
+		WriteLine(FileID,s)
+		
+		for i = 0 to Mesh.Vertices.Length
+			s = "v " + str(Mesh.Vertices[i].Position.x) + " " + str(Mesh.Vertices[i].Position.y) + " " + str(-Mesh.Vertices[i].Position.z)
+			WriteLine(FileID,s)
+		next i
+		
+		for i = 0 to Mesh.Vertices.Length
+			s = "vt " + str(Mesh.Vertices[i].UV.u) + " " + str(1.0-Mesh.Vertices[i].UV.v)
+			WriteLine(FileID,s)
+		next i
+		
+		for i = 0 to Mesh.Vertices.Length
+			s = "vn " + str(Mesh.Vertices[i].Normal.x) + " " + str(Mesh.Vertices[i].Normal.y) + " " + str(-Mesh.Vertices[i].Normal.z)
+			WriteLine(FileID,s)
+		next i
+		
+		if Mesh.Indices.Length > -1
+			for i = 0 to Mesh.Indices.Length step 3
+				s = "f " +str(VertexCount+Mesh.Indices[i]+1) + "/" + str(VertexCount+Mesh.Indices[i]+1) + "/" + str(VertexCount+Mesh.Indices[i]+1)
+				s = s + " " + str(VertexCount+Mesh.Indices[i+1]+1) + "/" + str(VertexCount+Mesh.Indices[i+1]+1) + "/" + str(VertexCount+Mesh.Indices[i+1]+1)
+				s = s + " " + str(VertexCount+Mesh.Indices[i+2]+1) + "/" + str(VertexCount+Mesh.Indices[i+2]+1) + "/" + str(VertexCount+Mesh.Indices[i+2]+1)
+				WriteLine(FileID,s)
+			next i
+		else
+			for i = 1 to Mesh.Vertices.Length + 1 step 3
+				s = "f " + str(VertexCount+i) + "/" + str(VertexCount+i) + "/" + str(VertexCount+i)
+				s = s + " " + str(VertexCount+i+1) + "/" + str(VertexCount+i+1) + "/" + str(VertexCount+i+1)
+				s = s + " " + str(VertexCount+i+2) + "/" + str(VertexCount+i+2) + "/" + str(VertexCount+i+2)
+				WriteLine(FileID, s)
+			next i
+		endif
+		
+		CloseFile(FileID)
+		
+	endif
+		
+endfunction FileID
+
+//----------------------------------------------------------------------
+// 
+//---------------------------------------------------------------------
 
 
