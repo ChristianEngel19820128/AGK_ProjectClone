@@ -47,7 +47,7 @@ function MapSectorTextureImageLoad(TextureImage ref as TMapSectorTextureImageDat
 
 	if FilePathSetAndCheck(TextureImage.Source) = 1
 
-		TextureImage.ImageID = LoadImage(TextureImage.Source.File)
+		TextureImage.ImageID = LoadImage(TextureImage.Source.Name)
 				
 		if TextureImage.ImageID > 0
 			TextureImage.Enabled = TRUE
@@ -81,22 +81,22 @@ endfunction
 function MapSectorTexturesLoad(MapSector ref as TMapSectorData)
 
 	if FilePathSetAndCheck(MapSector.DataSource.Ground) = 1
-		MapSector.TextureImages.Ground.Load(MapSector.DataSource.Ground.File)
+		MapSector.TextureImages.Ground.Load(MapSector.DataSource.Ground.Name)
 		MapSectorTextureImageLoadAll(MapSector.TextureImages.Ground)
 	endif
 	
 	if FilePathSetAndCheck(MapSector.DataSource.GroundNatural) = 1
-		MapSector.TextureImages.GroundNatural.Load(MapSector.DataSource.GroundNatural.File)
+		MapSector.TextureImages.GroundNatural.Load(MapSector.DataSource.GroundNatural.Name)
 		MapSectorTextureImageLoadAll(MapSector.TextureImages.GroundNatural)
 	endif
 	
 	if FilePathSetAndCheck(MapSector.DataSource.GroundUrban) = 1
-		MapSector.TextureImages.GroundUrban.Load(MapSector.DataSource.GroundUrban.File)
+		MapSector.TextureImages.GroundUrban.Load(MapSector.DataSource.GroundUrban.Name)
 		MapSectorTextureImageLoadAll(MapSector.TextureImages.GroundUrban)
 	endif
 	
 	if FilePathSetAndCheck(MapSector.DataSource.Cliff) = 1
-		MapSector.TextureImages.Cliff.Load(MapSector.DataSource.Cliff.File)
+		MapSector.TextureImages.Cliff.Load(MapSector.DataSource.Cliff.Name)
 		MapSectorTextureImageLoadAll(MapSector.TextureImages.Cliff)
 	endif
 

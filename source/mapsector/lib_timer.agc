@@ -50,12 +50,11 @@ endfunction
 // 
 //----------------------------------------------------------------------
 
-function TimeGet(Object ref as TTime,Now as integer,Reset as integer)
+function TimeGet(Object ref as TTime,Now as integer)
 
-	if Object.Difference = 0 or Reset = 1
+	if Object.Difference = 0
 		if Now > Object.Stamp + Object.Span
 			Object.Difference = Now - Object.Stamp
-			if Reset > 0 then Object.Stamp = Now
 			TimebasedCalc(Object)
 		endif
 	endif

@@ -4,7 +4,7 @@
 	"Identifier":"groundclipimage",
 	"Image":
 		{
-		"Source":{"Path":"/media/gfx/mapsector/ground","File":"clip.png"},
+		"Source":{"Path":"/media/gfx/mapsector/ground","Name":"clip.png"},
 		"TileCountX":1,
 		"TileCountY":1,
 		"Border":0
@@ -16,7 +16,7 @@
 	"Image":
 		{
 		"Identifier":"groundcursorstandard",
-		"Source":{"Path":"/media/gfx/mapsector/ground","File":"cursor_blue.png"},
+		"Source":{"Path":"/media/gfx/mapsector/ground","Name":"cursor_blue.png"},
 		"TileCountX":1,
 		"TileCountY":1,
 		"Border":0
@@ -28,7 +28,7 @@
 	"Image":
 		{
 		"Identifier":"groundcursorselected",
-		"Source":{"Path":"/media/gfx/mapsector/ground","File":"cursor_yellow.png"},
+		"Source":{"Path":"/media/gfx/mapsector/ground","Name":"cursor_yellow.png"},
 		"TileCountX":1,
 		"TileCountY":1,
 		"Border":0

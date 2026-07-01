@@ -3,25 +3,29 @@
 //
 //----------------------------------------------------------------------
 
-function MapSectorSkyBoxInit(SkyBox ref as TMapSectorSkyBox,Camera as TMapSectorCameraData)
+function MapSectorSkyBoxInit(SkyBox ref as TMapSectorSkyBox,MapSector ref as TMapSectorData,Camera as TMapSectorCameraData)
 	
-	SkyBox.Center = Camera.Orbiter.Position
+	//SkyBox.Center = Camera.Orbiter.Position
 	//SkyBox.Center.Y = SkyBox.Center.Y +50
+
+	SkyBox.Center.x = MapSector.TileSize * MapSector.MapSizeX * 0.5
+	SkyBox.Center.y = 0
+	SkyBox.Center.z = MapSector.TileSize * MapSector.MapSizeY * 0.5
 
 	SkyBox.Distance = Camera.Range * 0.50
 	SkyBox.Diameter = SkyBox.Distance * 2.0	
 	
 	SetSkyBoxVisible(1)
-	SetSkyBoxSkyColor(0,148,255)
-	SetSkyBoxHorizonSize(10,1)
-	SetSkyBoxHorizonColor(155,0,255)
+	SetSkyBoxSkyColor(0,150,255)
+	SetSkyBoxHorizonSize(10,0)
+	SetSkyBoxHorizonColor(255,55,75)
 	
 	//SetAmbientColor(55,55,55)//125,125,125)
 	
 	ClearPointLights()
 	
-	/*
 	
+	/*
 	SkyBox.Sphere = CreateObjectSphere(SkyBox.Diameter,15,15)
 	SetObjectPosition(SkyBox.Sphere,SkyBox.Center.x,SkyBox.Center.y,SkyBox.Center.z)
 	
@@ -34,8 +38,8 @@ function MapSectorSkyBoxInit(SkyBox ref as TMapSectorSkyBox,Camera as TMapSector
 
 	SetObjectTransparency(SkyBox.Sphere,1)
 	SetObjectAlpha(SkyBox.Sphere,255)
-	
 	*/
+	
 	
 	MapSectorSkyBoxSunInit(SkyBox,Camera)
 	MapSectorSkyBoxMoonInit(SkyBox,Camera)
@@ -53,7 +57,7 @@ endfunction
 function MapSectorSkyBoxFogInit(SkyBox ref as TMapSectorSkyBox,Camera as TMapSectorCameraData)
 	
 	SetFogMode(1)
-	SetFogRange(0,1500)
+	SetFogRange(-1,1500)
 	SetFogColor(255,255,255)
 	SetFogSunColor(255,155,155)
 
@@ -69,12 +73,14 @@ function MapSectorSkyBoxSunInit(SkyBox ref as TMapSectorSkyBox,Camera as TMapSec
 	local y as float
 	local z as float
 	local Range as float
+	local pos as TVector
 	
 	Range = SkyBox.Distance*0.75
 	
-	SkyBox.Sun.Orbiter = GetOrbiterPosition(SkyBox.Center,Range,0,0)
-	TimeSet(SkyBox.Sun.TransTime,100,1)
+	SkyBox.Sun.Orbiter = GetOrbiterPosition(SkyBox.Center,Range,0,65)
+	TimeSet(SkyBox.Sun.TransTime,50,1)
 	
+	/*
 	SkyBox.Sun.Sphere = CreateObjectSphere(GetSizePerDistance(3.5,Range),15,15)
 	SetObjectPosition(SkyBox.Sun.Sphere,SkyBox.Sun.Orbiter.Position.X,SkyBox.Sun.Orbiter.Position.Y,SkyBox.Sun.Orbiter.Position.Z)
 	
@@ -88,26 +94,21 @@ function MapSectorSkyBoxSunInit(SkyBox ref as TMapSectorSkyBox,Camera as TMapSec
 	
 	SkyBox.Sun.Img = LoadImage("/media/gfx/mapsector/sky/Sun.png")
 	SetObjectImage(SkyBox.Sun.Sphere,SkyBox.Sun.Img,0)
+	*/
 	
-	SetSunActive(1)
-	SetSunColor(255,155,155)
-	
-	SetShadowMappingMode(3)
+	SetShadowMappingMode(2)
 	SetShadowMapSize(1024,1024)
 	SetShadowBias(0.001)
 	SetShadowRange(Camera.Range*0.8)
 	SetShadowLightStepSize(1)
 	SetShadowSmoothing(4)
-	SetShadowCascadeValues(0.3,0.6,0.9)
+	SetShadowCascadeValues(0.7,0.8,0.9)
 		
-	x = -(SkyBox.Sun.Orbiter.Position.X-SkyBox.Sun.Orbiter.Center.X)*0.01
-	y = -(SkyBox.Sun.Orbiter.Position.Y-SkyBox.Sun.Orbiter.Center.Y)*0.01
-	z = -(SkyBox.Sun.Orbiter.Position.Z-SkyBox.Sun.Orbiter.Center.Z)*0.01
+	pos = GetVetorNormalsP1P2(SkyBox.Sun.Orbiter.Position,SkyBox.Center)
 		
-	SetSunDirection(x,y,z)
+	SetSunDirection(pos.x,pos.y,pos.z)
 	
 	SetSkyBoxSunSize(10,25)
-	SetSkyBoxSunVisible(1)
 	
 endfunction
 
@@ -159,15 +160,15 @@ function MapSectorSkyBoxRecalc(SkyBox ref as TMapSectorSkyBox,Camera as TMapSect
 		SkyBox.Center = Camera.Orbiter.Position		
 		
 		SkyBox.Sun.Orbiter = GetOrbiterPositionRefresh(SkyBox.Sun.Orbiter,SkyBox.Center)
-		SetObjectPosition(SkyBox.Sun.Sphere,SkyBox.Sun.Orbiter.Position.X,SkyBox.Sun.Orbiter.Position.Y,SkyBox.Sun.Orbiter.Position.Z)
 		
-		//SetSunDirection(SkyBox.Sun.Orbiter.Alpha/360-1,0,SkyBox.Sun.Orbiter.Beta/360-1)
-		
+		//SetObjectPosition(SkyBox.Sun.Sphere,SkyBox.Sun.Orbiter.Position.X,SkyBox.Sun.Orbiter.Position.Y,SkyBox.Sun.Orbiter.Position.Z)
+				
 		x = -(SkyBox.Sun.Orbiter.Position.X-SkyBox.Sun.Orbiter.Center.X)
 		y = -(SkyBox.Sun.Orbiter.Position.Y-SkyBox.Sun.Orbiter.Center.Y)
 		z = -(SkyBox.Sun.Orbiter.Position.Z-SkyBox.Sun.Orbiter.Center.Z)
 		
 		SetSunDirection(x,y,z)
+		//SetSunColor(SkyBox.Sun.Color.Red,SkyBox.Sun.Color.Green,SkyBox.Sun.Color.Blue)
 		
 	endif
 
@@ -180,26 +181,98 @@ endfunction
 
 function MapSectorSkyBoxDo(SkyBox ref as TMapSectorSkyBox,Camera as TMapSectorCameraData)
 
-	local a as float
-	local b as float
-	local x as float
-	local y as float
-	local z as float
+	local alpha as float
+	local beta as float
+	local gamma as float
+	local range as float
+	local r1 as float
+	local g1 as float
+	local b1 as float
+	local r2 as float
+	local g2 as float
+	local b2 as float
+	local r3 as float
+	local g3 as float
+	local b3 as float
+	local pos as TVector
 
-	if TimeGet(SkyBox.Sun.TransTime,GetMilliseconds(),1) > 0
+	if TimeGet(SkyBox.Sun.TransTime,GetMilliseconds()) > 0
 		
-		a = 1
-		b = sin(SkyBox.Sun.Orbiter.Alpha)
+		alpha = 1.5
+		beta = sin(SkyBox.Sun.Orbiter.Alpha)
+		gamma = SetRad(SkyBox.Sun.Orbiter.Beta,0)
+		range = SkyBox.Distance*0.75+(abs(gamma)*100/180)
 
+		SkyBox.Sun.Orbiter = GetOrbiterPosition(SkyBox.Center,Range,SkyBox.Sun.Orbiter.Alpha,SkyBox.Sun.Orbiter.Beta)
+		SkyBox.Sun.Orbiter = GetOrbiterRotate(SkyBox.Sun.Orbiter,alpha,beta)
 		
-		SkyBox.Sun.Orbiter = GetOrbiterRotate(SkyBox.Sun.Orbiter,a,b)
-		SetObjectPosition(SkyBox.Sun.Sphere,SkyBox.Sun.Orbiter.Position.X,SkyBox.Sun.Orbiter.Position.Y,SkyBox.Sun.Orbiter.Position.Z)
+		//SetObjectPosition(SkyBox.Sun.Sphere,SkyBox.Sun.Orbiter.Position.X,SkyBox.Sun.Orbiter.Position.Y,SkyBox.Sun.Orbiter.Position.Z)
 		
-		x = -(SkyBox.Sun.Orbiter.Position.X-SkyBox.Sun.Orbiter.Center.X)
-		y = -(SkyBox.Sun.Orbiter.Position.Y-SkyBox.Sun.Orbiter.Center.Y)
-		z = -(SkyBox.Sun.Orbiter.Position.Z-SkyBox.Sun.Orbiter.Center.Z)
+		pos = GetVetorNormalsP1P2(SkyBox.Sun.Orbiter.Position,SkyBox.Center)
 		
-		SetSunDirection(x,y,z)
+		SetSunDirection(pos.x,pos.y,pos.z)
+		
+		r1 = SkyBox.Sun.Orbiter.Radius/SkyBox.Distance*2.5
+		g1 = SkyBox.Sun.Orbiter.Radius/SkyBox.Distance*2.5
+		b1 = SkyBox.Sun.Orbiter.Radius/SkyBox.Distance*2.5
+
+		SkyBox.Sun.SphereColor.Red   = r1*255*0.25
+		SkyBox.Sun.SphereColor.Green = g1*255*0.25
+		SkyBox.Sun.SphereColor.Blue  = b1*255*0.25
+		
+		r2 = SkyBox.Sun.Orbiter.Radius/SkyBox.Distance*2.5
+		g2 = SkyBox.Sun.Orbiter.Radius/SkyBox.Distance*1.75
+		b2 = SkyBox.Sun.Orbiter.Radius/SkyBox.Distance*2.25
+		
+		SkyBox.Sun.HorizonColor.Red   = r2*255*0.25
+		SkyBox.Sun.HorizonColor.Green = g2*255*0.25
+		SkyBox.Sun.HorizonColor.Blue  = b2*255*0.25
+		
+		if SkyBox.Sun.HorizonColor.Red < 0   then SkyBox.Sun.HorizonColor.Red = 0
+		if SkyBox.Sun.HorizonColor.Green < 0 then SkyBox.Sun.HorizonColor.Green = 0
+		if SkyBox.Sun.HorizonColor.Blue < 0  then SkyBox.Sun.HorizonColor.Blue = 0
+		
+		r3 = SkyBox.Sun.Orbiter.Radius/SkyBox.Distance*1.0
+		g3 = SkyBox.Sun.Orbiter.Radius/SkyBox.Distance*1.75
+		b3 = SkyBox.Sun.Orbiter.Radius/SkyBox.Distance*2.55
+
+		SkyBox.Sun.SkyColor.Red = r3*255*0.25
+		SkyBox.Sun.SkyColor.Green = g3*255*0.25
+		SkyBox.Sun.SkyColor.Blue = b3*255*0.25
+		
+		if pos.y > 0.25
+			SetSunActive(0)
+			SetSkyBoxSunVisible(0)
+		else
+			SetSunActive(1)
+			SetSkyBoxSunVisible(1)
+		endif
+		
+		/*
+		print(str(SkyBox.Sun.SphereColor.Red))
+		print(str(SkyBox.Sun.SphereColor.Green))
+		print(str(SkyBox.Sun.SphereColor.Blue))
+		*/
+		
+		SetSunColor(SkyBox.Sun.SphereColor.Red,SkyBox.Sun.SphereColor.Green,SkyBox.Sun.SphereColor.Blue)
+		SetSkyBoxSunColor(SkyBox.Sun.SphereColor.Red,SkyBox.Sun.SphereColor.Green,SkyBox.Sun.SphereColor.Blue)
+		SetFogSunColor(SkyBox.Sun.SphereColor.Red,SkyBox.Sun.SphereColor.Green,SkyBox.Sun.SphereColor.Blue)
+		//if pos.y > 0.25 then SetSkyBoxSkyColor(SkyBox.Sun.Color.Red,SkyBox.Sun.Color.Green,SkyBox.Sun.Color.Blue)
+		
+		SetSkyBoxHorizonColor(SkyBox.Sun.HorizonColor.Red,SkyBox.Sun.HorizonColor.Green,SkyBox.Sun.HorizonColor.Blue)
+		SetSkyBoxSkyColor(SkyBox.Sun.SkyColor.Red,SkyBox.Sun.SkyColor.Green,SkyBox.Sun.SkyColor.Blue)
+		
+		SetSkyBoxHorizonSize(SkyBox.Sun.Orbiter.Radius/SkyBox.Distance*2.5+5,0)
+		
+		/*
+		if pos.y > 0
+			SetSkyBoxHorizonSize(((abs(pos.y)))*15.0+10,0)
+		else
+			SetSkyBoxHorizonSize(((abs(pos.y)))*15.0+10,0)
+		endif
+		*/
+		
+		TimeReset(SkyBox.Sun.TransTime,GetMilliseconds())
 		
 	endif
 
@@ -398,29 +471,32 @@ function MapSectorSkyBoxDo1(SkyBox ref as TMapSectorSkyBox1,Camera as TMapSector
 	endif
 	
 	
-	if TimeGet(SkyBox.MoonTransTime,GetMilliseconds(),1) > 0
+	if TimeGet(SkyBox.MoonTransTime,GetMilliseconds()) > 0
 		SkyBox.MoonOrbiter = GetOrbiterRotate(SkyBox.MoonOrbiter,1.5,0)
 		SetObjectPosition(SkyBox.MoonSphere,SkyBox.MoonOrbiter.Position.X,SkyBox.MoonOrbiter.Position.Y,SkyBox.MoonOrbiter.Position.Z)
+		TimeReset(SkyBox.MoonTransTime,GetMilliseconds())
 	endif
 	
-	if TimeGet(SkyBox.SunTransTime,GetMilliseconds(),1) > 0
+	if TimeGet(SkyBox.SunTransTime,GetMilliseconds()) > 0
 		SkyBox.SunOrbiter = GetOrbiterRotate(SkyBox.SunOrbiter,1,0)
 		SetObjectPosition(SkyBox.SunSphere,SkyBox.SunOrbiter.Position.X,SkyBox.SunOrbiter.Position.Y,SkyBox.SunOrbiter.Position.Z)
+		TimeReset(SkyBox.SunTransTime,GetMilliseconds())
 	endif
 	
 	for i = 0 to SkyBox.CloudTransTime.Length
 		
-		if TimeGet(SkyBox.CloudTransTime[i],GetMilliseconds(),1) > 0
+		if TimeGet(SkyBox.CloudTransTime[i],GetMilliseconds()) > 0
 			//RotateObjectLocalY(SkyBox.CloudSphere[i],0.1+0.1*SkyBox.CloudTransTime.Length-0.1*i)
 			SkyBox.CloudAnim[0,i] = SkyBox.CloudAnim[0,i]+0.01+0.01*i
 			if SkyBox.CloudAnim[0,i] > 1 then SkyBox.CloudAnim[0,i] = 0
 			SetObjectUVOffset(SkyBox.CloudPlane[0,i],0,-0.25+SkyBox.CloudAnim[0,i],0)
 			SetObjectUVScale(SkyBox.CloudPlane[0,i],0,SkyBox.CloudAnim[0,i]+0.25,1)
+			TimeReset(SkyBox.CloudTransTime[i],GetMilliseconds())
 		endif
 		
 	next i
 		
-	if TimeGet(SkyBox.SkyTransTime,GetMilliseconds(),1) > 0
+	if TimeGet(SkyBox.SkyTransTime,GetMilliseconds()) > 0
 		
 		if SkyBox.SkyTrans < 255
 			
@@ -428,7 +504,7 @@ function MapSectorSkyBoxDo1(SkyBox ref as TMapSectorSkyBox1,Camera as TMapSector
 			//SetObjectColor(SkyBox.SkySphere,SkyBox.SkyTrans*0.55,SkyBox.SkyTrans*0.65,SkyBox.SkyTrans,255)
 			
 			//if GetObjectAlpha(SkyBox.StarsSphere) > 0 then SetObjectAlpha(SkyBox.StarsSphere,Floor(GetObjectAlpha(SkyBox.StarsSphere)*0.99))
-		
+			TimeReset(SkyBox.SkyTransTime,GetMilliseconds())
 		endif
 		
 	endif

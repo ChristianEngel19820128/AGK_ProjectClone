@@ -14,7 +14,7 @@ function MapSectorGenerate(MapSector ref as TMapSectorData)
 	MapSector.Properties.Altitude = 75
 	
 	MapSector.Source.Path = "/media/data/mapsector"
-	MapSector.Source.File = "mapsector.json"
+	MapSector.Source.Name = "mapsector.json"
 	
 	MapSectorDataSourceLoad(MapSector)
 	MapSectorTexturesLoad(MapSector)
@@ -25,7 +25,7 @@ function MapSectorGenerate(MapSector ref as TMapSectorData)
 	MapSectorObject3DGenerate(MapSector)
 	
 	MapSectorCameraInit(MapSector.Camera)
-	MapSectorSkyBoxInit(MapSector.SkyBox,MapSector.Camera)
+	MapSectorSkyBoxInit(MapSector.SkyBox,MapSector,MapSector.Camera)
 
 endfunction
 

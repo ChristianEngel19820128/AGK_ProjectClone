@@ -5,31 +5,35 @@
 
 function MapSectorCameraInit(Camera ref as TMapSectorCameraData)
 	 
-	Camera.Range = 200
+	Camera.Range = 150
 
 	SetCameraRange(1,1,Camera.Range)
 	
-	Camera.Center.X = 50
+	Camera.Center.X = 0
 	Camera.Center.Y = 15
-	Camera.Center.Z = 50
+	Camera.Center.Z = 0
 	
-	Camera.Orbiter = GetOrbiterPosition(Camera.Center,50,0,15)
+	Camera.Orbiter.Radius = 50
+	Camera.Orbiter.Alpha = 0
+	Camera.Orbiter.Beta = 90
 	
-	Camera.Pivot = CreateObjectSphere(1,15,15)
+	Camera.Orbiter = GetOrbiterPosition(Camera.Center,Camera.Orbiter.Radius,Camera.Orbiter.Alpha,Camera.Orbiter.Beta)
+	
+	Camera.Pivot = CreateObjectSphere(0.25,8,8)
 	SetObjectCullMode(Camera.Pivot,1)
 	SetObjectCollisionMode(Camera.Pivot,0)
 	SetObjectLightMode(Camera.Pivot,0)
 	SetObjectCastShadow(Camera.Pivot,0)
 	SetObjectReceiveShadow(Camera.Pivot,0)
 	SetObjectFogMode(Camera.Pivot,0)
-	//SetObjectVisible(Camera.Pivot,0)
+	SetObjectVisible(Camera.Pivot,1)
 	
 	SetObjectPosition(Camera.Pivot,Camera.Center.X,Camera.Center.Y,Camera.Center.Z)
 	SetCameraPosition(1,Camera.Orbiter.Position.X,Camera.Orbiter.Position.Y,Camera.Orbiter.Position.Z)
 
 	SetCameraLookAt(1,Camera.Center.X,Camera.Center.Y,Camera.Center.Z,0)
 	
-	TimeSet(Camera.MoveTimer,100,1)
+	TimeSet(Camera.MoveTimer,35,1)
 	
 	Camera.RotationSpeed = 5
 	Camera.MoveSpeed = 2
@@ -47,7 +51,26 @@ endfunction
 
 function MapSectorCameraMove(Camera ref as TMapSectorCameraData)
 	
-	if TimeGet(Camera.MoveTimer,GetMilliseconds(),1) > 0
+	/*
+	
+	print(str(Camera.Center.x))
+	print(str(Camera.Center.y))
+	print(str(Camera.Center.z))
+	
+	print(str(Camera.Orbiter.Center.x))
+	print(str(Camera.Orbiter.Center.y))
+	print(str(Camera.Orbiter.Center.z))
+	
+	print(str(Camera.Orbiter.Position.x))
+	print(str(Camera.Orbiter.Position.y))
+	print(str(Camera.Orbiter.Position.z))
+	
+	print(str(Camera.Orbiter.Alpha))
+	print(str(Camera.Orbiter.Beta))
+	
+	*/
+	
+	if TimeGet(Camera.MoveTimer,GetMilliseconds()) > 0
 		
 		if GetRawKeyState(KEY_W)			
 			MapSectorCameraPositionCalc(Camera,CForward)
@@ -88,7 +111,9 @@ function MapSectorCameraMove(Camera ref as TMapSectorCameraData)
 				MapSectorCameraPositionZoom(Camera,COut)
 			endif
 		endif
-		 
+		
+		TimeReset(Camera.MoveTimer,GetMilliseconds())
+		    
 	endif
 	
 endfunction
@@ -106,8 +131,8 @@ function MapSectorCameraPositionZoom(Camera ref as TMapSectorCameraData,Directio
 	
 	if (Camera.Orbiter.Radius + Radius < Camera.LimitOut and Direction = COut) or (Camera.Orbiter.Radius + Radius > Camera.LimitIn and Direction = CIn)
 	
-		if (Camera.Orbiter.Radius + Radius > Camera.LimitOut and Direction = COut) then Radius = Camera.Orbiter.Radius + Camera.LimitOut
-		if (Camera.Orbiter.Radius + Radius < Camera.LimitIn and Direction = CIn) then Radius = Camera.Orbiter.Radius + Camera.LimitIn
+		if (Camera.Orbiter.Radius + Radius > Camera.LimitOut and Direction = COut) then Radius = Camera.LimitOut - Camera.Orbiter.Radius
+		if (Camera.Orbiter.Radius + Radius < Camera.LimitIn and Direction = CIn) then Radius = Camera.LimitIn - Camera.Orbiter.Radius
 	
 		Camera.Orbiter = GetOrbiterZoom(Camera.Orbiter,Radius)
 		SetCameraPosition(1,Camera.Orbiter.Position.X,Camera.Orbiter.Position.Y,Camera.Orbiter.Position.Z)
@@ -130,8 +155,8 @@ function MapSectorCameraPositionLift(Camera ref as TMapSectorCameraData,Directio
 	
 	if (Camera.Orbiter.Position.Y + Length < Camera.LimitUp and Direction = CUp) or (Camera.Orbiter.Position.Y + Length > Camera.LimitDown and Direction = CDown)
 		
-		if (Camera.Orbiter.Position.Y + Length > Camera.LimitUp and Direction = CUp) then Length = Camera.Orbiter.Position.Y + Camera.LimitUp
-		if (Camera.Orbiter.Position.Y + Length < Camera.LimitDown and Direction = CDown) then Length = Camera.Orbiter.Position.Y + Camera.LimitDown
+		if (Camera.Orbiter.Position.Y + Length > Camera.LimitUp and Direction = CUp) then Length = Camera.LimitUp - Camera.Orbiter.Position.Y
+		if (Camera.Orbiter.Position.Y + Length < Camera.LimitDown and Direction = CDown) then Length = Camera.LimitDown - Camera.Orbiter.Position.Y
 		
 		Camera.Orbiter = GetOrbiterLift(Camera.Orbiter,Length)
 		SetCameraPosition(1,Camera.Orbiter.Position.X,Camera.Orbiter.Position.Y,Camera.Orbiter.Position.Z)
@@ -157,7 +182,7 @@ function MapSectorCameraPositionCalc(Camera ref as TMapSectorCameraData,Directio
 	if Direction = CLeft then Camera.Orbiter = GetOrbiterStrafeLeft(Camera.Orbiter,Length)
 	
 	Camera.Center = Camera.Orbiter.Center
-	SetObjectPosition(Camera.Pivot,Camera.Center.X,Camera.Center.Y,Camera.Center.Z)
+	SetObjectPosition(Camera.Pivot,Camera.Orbiter.Center.X,Camera.Orbiter.Center.Y,Camera.Orbiter.Center.Z)
 	SetCameraPosition(1,Camera.Orbiter.Position.X,Camera.Orbiter.Position.Y,Camera.Orbiter.Position.Z)
 	SetCameraLookAt(1,Camera.Center.X,Camera.Center.Y,Camera.Center.Z,0)
 

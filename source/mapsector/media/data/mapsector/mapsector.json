@@ -1,10 +1,10 @@
 {
-	"Cliff":{"Path":"/media/data/mapsector","File":"mapsector_cliff.json"},
-	"Ground":{"Path":"/media/data/mapsector","File":"mapsector_ground.json"},
-	"GroundNatural":{"Path":"/media/data/mapsector","File":"mapsector_groundnatural.json"},
-	"GroundUrban":{"Path":"/media/data/mapsector","File":"mapsector_groundurban.json"},
-	"Strings":{"Path":"/media/data/mapsector","File":"mapsector_string.json"},
-	"TerrainType":{"Path":"/media/data/mapsector","File":"mapsector_terraintype.json"},
-	"FloorObjects":{"Path":"/media/data/mapsector","File":"mapsector_floorobjects.json"},
-	"AmbientObjects":{"Path":"/media/data/mapsector","File":"mapsector_ambientobjects.json"}
+	"Cliff":{"Path":"/media/data/mapsector","Name":"mapsector_cliff.json"},
+	"Ground":{"Path":"/media/data/mapsector","Name":"mapsector_ground.json"},
+	"GroundNatural":{"Path":"/media/data/mapsector","Name":"mapsector_groundnatural.json"},
+	"GroundUrban":{"Path":"/media/data/mapsector","Name":"mapsector_groundurban.json"},
+	"Strings":{"Path":"/media/data/mapsector","Name":"mapsector_string.json"},
+	"TerrainType":{"Path":"/media/data/mapsector","Name":"mapsector_terraintype.json"},
+	"FloorObjects":{"Path":"/media/data/mapsector","Name":"mapsector_floorobjects.json"},
+	"AmbientObjects":{"Path":"/media/data/mapsector","Name":"mapsector_ambientobjects.json"}
 }

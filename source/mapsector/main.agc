@@ -43,14 +43,13 @@ Map.ClipHeight = 4
 Map.Properties.Altitude = 75
 
 Map.Source.Path = "/media/data/mapsector"
-Map.Source.File = "mapsector.json"
+Map.Source.Name = "mapsector.json"
 
 Print("load data and textures")
 sync()
 MapSectorDataSourceLoad(Map)
 MapSectorTexturesLoad(Map)
-MapSectorFloorImagesLoad(Map)
-MapSectorFloorObjectsLoad(Map)
+MapSectorFloorObjectsLoad(Map.FloorObjectTypes)
 MapSectorAmbientObjectsLoad(Map)
 
 Print("generate heighmap")
@@ -83,12 +82,12 @@ MapSectorCameraInit(Map.Camera)
 
 Print("init skybox")
 sync()
-MapSectorSkyBoxInit(Map.SkyBox,Map.Camera)
+MapSectorSkyBoxInit(Map.SkyBox,Map,Map.Camera)
 
 repeat
-	Print( ScreenFPS() )
+	Print(ScreenFPS())
 	MapSectorCameraMove(Map.Camera)
-	MapSectorSkyBoxRecalc(Map.SkyBox,Map.Camera)
+	//MapSectorSkyBoxRecalc(Map.SkyBox,Map.Camera)
 	MapSectorSkyBoxDo(Map.SkyBox,Map.Camera)
 	Sync()
 until GetRawKeyState(Key_Escape) = 1

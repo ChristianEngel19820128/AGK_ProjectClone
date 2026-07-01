@@ -6,7 +6,7 @@
 	"Description":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
 	"Image":
 		{
-		"Source":{"Path":"/media/gfx/mapsector/cliff","File":"cliff_1_1.png"},
+		"Source":{"Path":"/media/gfx/mapsector/cliff","Name":"cliff_1_1.png"},
 		"TileCountX":2,
 		"TileCountY":4,
 		"Border":0
@@ -19,7 +19,7 @@
 	"Description":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
 	"Image":
 		{
-		"Source":{"Path":"/media/gfx/mapsector/cliff","File":"cliff_1_2.png"},
+		"Source":{"Path":"/media/gfx/mapsector/cliff","Name":"cliff_1_2.png"},
 		"TileCountX":2,
 		"TileCountY":4,
 		"Border":0
@@ -32,7 +32,7 @@
 	"Description":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
 	"Image":
 		{
-		"Source":{"Path":"/media/gfx/mapsector/cliff","File":"cliff_1_3.png"},
+		"Source":{"Path":"/media/gfx/mapsector/cliff","Name":"cliff_1_3.png"},
 		"TileCountX":2,
 		"TileCountY":4,
 		"Border":0
@@ -45,7 +45,7 @@
 	"Description":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
 	"Image":
 		{
-		"Source":{"Path":"/media/gfx/mapsector/cliff","File":"cliff_1_4.png"},
+		"Source":{"Path":"/media/gfx/mapsector/cliff","Name":"cliff_1_4.png"},
 		"TileCountX":2,
 		"TileCountY":4,
 		"Border":0
@@ -58,7 +58,7 @@
 	"Description":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
 	"Image":
 		{
-		"Source":{"Path":"/media/gfx/mapsector/cliff","File":"cliff_1_5.png"},
+		"Source":{"Path":"/media/gfx/mapsector/cliff","Name":"cliff_1_5.png"},
 		"TileCountX":2,
 		"TileCountY":4,
 		"Border":0
@@ -71,7 +71,7 @@
 	"Description":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
 	"Image":
 		{
-		"Source":{"Path":"/media/gfx/mapsector/cliff","File":"cliff_1_6.png"},
+		"Source":{"Path":"/media/gfx/mapsector/cliff","Name":"cliff_1_6.png"},
 		"TileCountX":2,
 		"TileCountY":4,
 		"Border":0
@@ -84,7 +84,7 @@
 	"Description":{"DE":"","EN":"","FR":"","ES":"","PT":"","EO":"","PL":"","RU":""},
 	"Image":
 		{
-		"Source":{"Path":"/media/gfx/mapsector/cliff","File":"cliff_1_7.png"},
+		"Source":{"Path":"/media/gfx/mapsector/cliff","Name":"cliff_1_7.png"},
 		"TileCountX":2,
 		"TileCountY":4,
 		"Border":0
